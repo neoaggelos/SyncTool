@@ -14,6 +14,9 @@ to know:
 * Don't run multiple SyncTool sessions over the same directory. This could cause
   pure chaos.
 
+* The directory should not contain any symlinks (Linux and Mac OS X). They are
+  not handled properly at the moment.
+
 * Only ANSI names are allowed. UTF-16 support will be added in next version.
   
 Below you can find details for the available sync modes.
