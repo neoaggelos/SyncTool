@@ -20,8 +20,3 @@ include_directories("${CMAKE_SOURCE_DIR}/sources")
 add_executable(SyncTool ${SOURCES})
 set_target_properties(SyncTool PROPERTIES OUTPUT_NAME "synctool")
 install(TARGETS SyncTool DESTINATION ${CMAKE_INSTALL_PREFIX})
-
-# Windows needs -mwindows
-if (WIN32)
-  target_link_libraries(SyncTool -mwindows)
-endif(WIN32)

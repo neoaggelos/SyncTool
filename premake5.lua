@@ -1,6 +1,6 @@
 workspace "SyncTool"
 	configurations { "Release", "Debug" }
-	platforms { "x86", "x84_64" }
+	platforms { "x86", "x86_64" }
 
 	location "build"
 	targetdir "build"
@@ -21,7 +21,7 @@ workspace "SyncTool"
 
 		filter "configurations:Debug"
 			defines "_DEBUG"
-			flags {"Symbols"}
+			flags "Symbols"
 			warnings "extra"
 
 		filter "configurations:Release"

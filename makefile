@@ -3,14 +3,19 @@
 CXX=g++
 PREFIX=/usr/local
 
+### ADD HERE ANY LIBRARIES THAT MIGHT BE NEEDED FOR YOUR SYSTEM ###
+
+LIBS=
+
 ### UNCOMMENT THE FOLLOWING LINE FOR A DEBUG BUILD ###
 
 #CXXFLAGS+=-g -D_DEBUG 
 
+
 ### DO NOT CHANGE ANYTHING BELOW THIS LINE ###
 
 SOURCES=$(shell find ./sources | grep cpp | grep -v "windows.cpp")
-OBJECTS=$(shell echo $(SOURCES) | sed -e "s,\.cpp,\.cpp\.o,g")
+OBJECTS=$(shell echo $(SOURCES) | sed -e "s,\.cpp,\.o,g")
 TARGET=synctool
 
 CXXFLAGS+=-Wall -pedantic
@@ -18,7 +23,7 @@ CXXFLAGS+=-Wall -pedantic
 all: prepare $(TARGET)
 
 $(TARGET): prepare $(OBJECTS)
-	$(CXX) $(OBJECTS) -o $(TARGET)
+	$(CXX) $(LIBS) $(OBJECTS) -o $(TARGET)
 
 prepare:
 	if [ ! -d obj ]; then mkdir obj; fi
