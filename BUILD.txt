@@ -1,0 +1,63 @@
+================================================================================
+System Requirements
+================================================================================
+
+* A sane and working C++ compiler (g++, Visual Studio, Mingw, Xcode, ...)
+* Ability to follow simple instructions
+
+Download latest source code from [1], or use git:
+
+	# git clone http://github.com/neoaggelos/synctool --depth 1
+
+[1]: http://github.com/neoaggelos/synctool/archive/master.zip
+
+================================================================================
+Build using make (Linux and Mac OS X)
+================================================================================
+
+Linux and Mac OS X users can just use make. Open a terminal and run:
+
+	# cd path/to/synctool-0.1
+	# make
+	# sudo make install
+
+This installs synctool in '/usr/local/bin'. To change this, use:
+
+	# sudo make install PREFIX=/my/prefix
+	
+Note: This may also work for MSYS, Cygwin and/or Mingw32.
+
+================================================================================
+Build with any IDE (Windows, Linux and Mac OS X)
+================================================================================
+
+Open your favourite IDE (e.g. Dev-Cpp, Code::Blocks, Visual Studio etc) and
+create a new empty C++ project (name it 'SyncTool').
+
+Add the following files in the project:
+	sources/synctool.h
+	sources/main.cpp
+	sources/synctool.cpp
+	sources/util.cpp 
+	sources/windows.cpp     -- only for Windows
+	sources/dirent.cpp      -- only for Linux or Mac OS X
+
+And that's all. Press 'Build' to compile SyncTool.
+
+================================================================================
+Generate project files with premake (Windows, Linux and Mac OS X)
+================================================================================
+
+You can use premake5 [2] to generate project files for Visual Studio, GNU make
+and Xcode. Use these project files to build SyncTool.
+
+[2]: http://premake.github.io	"premake5 home page"
+
+================================================================================
+Generate project files with CMake (Windows, Linux and Mac OS X)
+================================================================================
+
+You can use CMake [3] to generate project files for your IDE. Use them to build
+SyncTool.
+
+[3]: http://cmake.org			"CMake home page"
