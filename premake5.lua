@@ -1,5 +1,7 @@
 workspace "SyncTool"
 	configurations { "Release", "Debug" }
+	platforms { "x86", "x84_64" }
+
 	location "build"
 	targetdir "build"
 	objdir "build/obj"
@@ -16,7 +18,6 @@ workspace "SyncTool"
 
 		filter "system:windows"
 			removefiles "sources/dirent.cpp"
-			linkoptions "-mwindows"
 
 		filter "configurations:Debug"
 			defines "_DEBUG"
@@ -25,3 +26,9 @@ workspace "SyncTool"
 
 		filter "configurations:Release"
 			optimize "on"
+
+		filter "platforms:x86"
+			architecture "x32"
+
+		filter "platforms:x86_64"
+			architecture "x64"
