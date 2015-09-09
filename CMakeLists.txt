@@ -20,3 +20,14 @@ include_directories("${CMAKE_SOURCE_DIR}/sources")
 add_executable(SyncTool ${SOURCES})
 set_target_properties(SyncTool PROPERTIES OUTPUT_NAME "synctool")
 install(TARGETS SyncTool DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+# Link to static runtime with Visual Studio
+if(MSVC)
+	foreach(var
+	CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+	CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+		if (${var} MATCHES "/MD")
+			string(REGEX REPLACE "/MD" "/MT" ${var} "${${var}}")
+		endif()
+	endforeach()
+endif()

@@ -10,6 +10,7 @@ workspace "SyncTool"
 		kind "consoleApp"
 		language "C++"
 		targetname "synctool"
+		flags "StaticRuntime"
 		files { "sources/*.cpp", "sources/*.h", "**.txt", "premake5.lua" }
 		removefiles "CMakeLists.txt"
 
