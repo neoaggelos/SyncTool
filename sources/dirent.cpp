@@ -52,7 +52,7 @@ void create_subdirectories(string srcdir, string dstdir)
 	{
 		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
 		{
-			if(ent->d_type == DT_DIR)
+			if(dirExists(ent->d_name))
 			{
 				string newdst = dstdir + SEP + ent->d_name;
 				string newsrc = srcdir + SEP + ent->d_name;
@@ -74,7 +74,7 @@ void remove_missing_files(string srcdir, string dstdir)
 	{
 		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
 		{
-			if (ent->d_type == DT_DIR)
+			if (dirExists(ent->d_name))
 			{
 				string newsrc = srcdir + SEP + ent->d_name;
 				string newdst = dstdir + SEP + ent->d_name;
@@ -104,7 +104,7 @@ void remove_missing_directories(string srcdir, string dstdir)
 	{
 		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
 		{
-			if (ent->d_type == DT_DIR)
+			if (dirExists(ent->d_name))
 			{
 				string dirToCheck = srcdir + SEP + ent->d_name;
 				if (!dirExists(dirToCheck))
@@ -128,7 +128,7 @@ void remove_dir_recursive(string root)
 	{
 		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
 		{
-			if (ent->d_type == DT_DIR)
+			if (dirExists(ent->d_name))
 			{
 				string newroot = root + SEP + ent->d_name;
 				remove_dir_recursive(newroot);
@@ -154,7 +154,7 @@ void copy_all_files(string srcdir, string dstdir)
 	{
 		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
 		{
-			if (ent->d_type == DT_DIR)
+			if (dirExists(ent->d_name))
 			{
 				string newsrc = srcdir + SEP + ent->d_name;
 				string newdst = dstdir + SEP + ent->d_name;
@@ -186,7 +186,7 @@ void copy_new_and_updated_files(string srcdir, string dstdir)
 	{
 		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
 		{
-			if (ent->d_type == DT_DIR)
+			if (dirExists(ent->d_name))
 			{
 				string newsrc = srcdir + SEP + ent->d_name;
 				string newdst = dstdir + SEP + ent->d_name;
