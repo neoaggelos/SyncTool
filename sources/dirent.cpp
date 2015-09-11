@@ -166,10 +166,7 @@ void copy_all_files(string srcdir, string dstdir)
 				string srcFile = srcdir + SEP + ent->d_name;
 				string dstFile = dstdir + SEP + ent->d_name;
 
-				/* delete old file to avoid complications */
-				remove(dstFile.c_str());
-
-				copy_file(srcFile, dstFile);
+				copyFile(srcFile, dstFile);
 			}
 		}
 	}
@@ -191,22 +188,14 @@ void copy_new_and_updated_files(string srcdir, string dstdir)
 				string newsrc = srcdir + SEP + ent->d_name;
 				string newdst = dstdir + SEP + ent->d_name;
 
-				copy_all_files(newsrc, newdst);
+				copy_new_and_updated_files(newsrc, newdst);
 			}
 			else
 			{
 				string srcFile = srcdir + SEP + ent->d_name;
 				string dstFile = dstdir + SEP + ent->d_name;
 
-				if (!fileExists(dstFile))
-				{
-					copy_file(srcFile, dstFile);
-				}
-				else if (fileExists(dstFile) && fileIsNewer(srcFile, dstFile))
-				{
-					remove(dstFile.c_str());
-					copy_file(srcFile, dstFile);
-				}
+				copyFileIfNewer(srcFile, dstFile);
 			}
 		}
 	}
@@ -214,7 +203,7 @@ void copy_new_and_updated_files(string srcdir, string dstdir)
 	closedir(src);
 }
 
-void copy_file(string srcFile, string dstFile)
+void copy_file_native(string srcFile, string dstFile)
 {
 	ifstream src(srcFile.c_str(), ios::binary);
 	ofstream dst(dstFile.c_str(), ios::binary);

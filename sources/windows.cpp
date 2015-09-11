@@ -192,10 +192,7 @@ void copy_all_files(string srcdir, string dstdir)
 				string srcFile = srcdir + SEP + d.cFileName;
 				string dstFile = dstdir + SEP + d.cFileName;
 
-				/* delete old file to avoid complications */
-				DeleteFileA(dstFile.c_str());
-
-				CopyFileA(srcFile.c_str(), dstFile.c_str(), FALSE);
+				copyFile(srcFile, dstFile);
 			}
 		}
 
@@ -223,22 +220,14 @@ void copy_new_and_updated_files(string srcdir, string dstdir)
 				string newsrc = srcdir + SEP + d.cFileName;
 				string newdst = dstdir + SEP + d.cFileName;
 
-				copy_all_files(newsrc, newdst);
+				copy_new_and_updated_files(newsrc, newdst);
 			}
 			else
 			{
 				string srcFile = srcdir + SEP + d.cFileName;
 				string dstFile = dstdir + SEP + d.cFileName;
 
-				if (!fileExists(dstFile))
-				{
-					copy_file(srcFile, dstFile);
-				}
-				else if (fileExists(dstFile) && fileIsNewer(srcFile, dstFile))
-				{
-					DeleteFileA(dstFile.c_str());
-					copy_file(srcFile, dstFile);
-				}
+				copyFileIfNewer(srcFile, dstFile);
 			}
 		}
 
@@ -248,7 +237,8 @@ void copy_new_and_updated_files(string srcdir, string dstdir)
 	FindClose(hndl);
 }
 
-void copy_file(string srcFile, string dstFile)
+void copy_file_native(string srcFile, string dstFile)
 {
+	DeleteFileA(dstFile.c_str());
 	CopyFileA(srcFile.c_str(), dstFile.c_str(), FALSE);
 }
