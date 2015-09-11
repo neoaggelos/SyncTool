@@ -9,7 +9,7 @@
 int main(int argc, char** argv)
 {
 	/* Figure out source and destination directories */
-	string srcdir, dstdir, mode;
+	string src, dst, mode;
 
 	if (argc != 4)
 	{
@@ -18,12 +18,12 @@ int main(int argc, char** argv)
 	}
 
 	/* Set source, destination and sync mode */
-	srcdir = argv[1];
-	dstdir = argv[2];
+	src = argv[1];
+	dst = argv[2];
 
 	/* Make sure directories are accessible */
-	assert_can_open_directory(srcdir);
-	assert_can_open_directory(dstdir);
+	assert_can_open_directory(src);
+	assert_can_open_directory(dst);
 
 	/* Set sync mode */
 	if (string(argv[3]) == "--mirror" || string(argv[3]) == "-m")
@@ -47,22 +47,22 @@ int main(int argc, char** argv)
 
 #ifdef _DEBUG
 	cout << "SyncTool version: " << VERSION << endl << endl
-		<< "Source: '" << srcdir << "'" << endl
-		<< "Destination: '" << dstdir << "'" << endl
+		<< "Source: '" << src << "'" << endl
+		<< "Destination: '" << dst << "'" << endl
 		<< "Sync mode: '" << mode << "'" << endl << endl;
 #endif
 
 	if (mode == "Mirror")
 	{
-		doMirrorSync(srcdir, dstdir);
+		doMirrorSync(src, dst);
 	}
 	else if (mode == "Append")
 	{
-		doAppendSync(srcdir, dstdir);
+		doAppendSync(src, dst);
 	}
 	else if (mode == "Shared")
 	{
-		doSharedSync(srcdir, dstdir);
+		doSharedSync(src, dst);
 	}
 
 	cout << "Success!" << endl << endl;

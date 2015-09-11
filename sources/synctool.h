@@ -38,8 +38,8 @@ void doSharedSync(string src, string dst);
 void die(int code);
 
 /* utility functions */
-bool fileExists(string file);
-bool dirExists(string dir);
+bool isFile(string file);
+bool isDirectory(string dir);
 bool fileIsNewer(string newFile, string oldFile);
 bool filesDiffer(string a, string b);
 void copyFile(string srcFile, string dstFile);
@@ -49,7 +49,7 @@ void copyFileIfNewer(string srcFile, string dstFile);
 void assert_can_open_directory(string dir);
 void remove_missing_files(string src, string dst);
 void remove_missing_directories(string src, string dst);
-void remove_dir_recursive(string root);
+void remove_dir(string root);
 void create_subdirectories(string src, string dst);
 void copy_file_native(string src, string dst);
 void copy_all_files(string src, string dst);

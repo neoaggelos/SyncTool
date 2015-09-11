@@ -9,13 +9,13 @@
 
 const string SEP = "\\";
 
-bool fileExists(string file)
+bool isFile(string file)
 {
 	DWORD res = GetFileAttributesA(file.c_str());
 	return res != INVALID_FILE_ATTRIBUTES && !(res & FILE_ATTRIBUTE_DIRECTORY);
 }
 
-bool dirExists(string dir)
+bool isDirectory(string dir)
 {
 	DWORD res = GetFileAttributesA(dir.c_str());
 	return res != INVALID_FILE_ATTRIBUTES && (res & FILE_ATTRIBUTE_DIRECTORY);
@@ -38,12 +38,12 @@ void assert_can_open_directory(string dir)
 	}
 }
 
-void create_subdirectories(string srcdir, string dstdir)
+void create_subdirectories(string src, string dst)
 {
 	HANDLE hndl = INVALID_HANDLE_VALUE;
 	WIN32_FIND_DATAA d;
 
-	string pattern = srcdir + "\\*";
+	string pattern = src + "\\*";
 
 	hndl = FindFirstFileA(pattern.c_str(), &d);
 	bool done = (hndl == INVALID_HANDLE_VALUE);
@@ -53,8 +53,8 @@ void create_subdirectories(string srcdir, string dstdir)
 		{
 			if (d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
-				string newdst = dstdir + SEP + d.cFileName;
-				string newsrc = srcdir + SEP + d.cFileName;
+				string newdst = dst + SEP + d.cFileName;
+				string newsrc = src + SEP + d.cFileName;
 				CreateDirectoryA(newdst.c_str(), NULL);
 				create_subdirectories(newsrc, newdst);
 			}
@@ -66,12 +66,12 @@ void create_subdirectories(string srcdir, string dstdir)
 	FindClose(hndl);
 }
 
-void remove_missing_files(string srcdir, string dstdir)
+void remove_missing_files(string src, string dst)
 {
 	HANDLE hndl = INVALID_HANDLE_VALUE;
 	WIN32_FIND_DATAA d;
 
-	string pattern = dstdir + "\\*";
+	string pattern = dst + "\\*";
 
 	hndl = FindFirstFileA(pattern.c_str(), &d);
 	bool done = (hndl == INVALID_HANDLE_VALUE);
@@ -82,16 +82,16 @@ void remove_missing_files(string srcdir, string dstdir)
 		{
 			if (d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
-				string newsrc = srcdir + SEP + d.cFileName;
-				string newdst = dstdir + SEP + d.cFileName;
+				string newsrc = src + SEP + d.cFileName;
+				string newdst = dst + SEP + d.cFileName;
 				remove_missing_files(newsrc, newdst);
 			}
 			else
 			{
-				string fileToCheck = srcdir + SEP + d.cFileName;
-				if (!fileExists(fileToCheck))
+				string fileToCheck = src + SEP + d.cFileName;
+				if (!isFile(fileToCheck))
 				{
-					string fileToRemove = dstdir + SEP + d.cFileName;
+					string fileToRemove = dst + SEP + d.cFileName;
 					DeleteFileA(fileToRemove.c_str());
 				}
 			}
@@ -103,12 +103,14 @@ void remove_missing_files(string srcdir, string dstdir)
 	FindClose(hndl);
 }
 
-void remove_missing_directories(string srcdir, string dstdir)
+
+
+void remove_missing_directories(string src, string dst)
 {
 	HANDLE hndl = INVALID_HANDLE_VALUE;
 	WIN32_FIND_DATAA d;
 
-	string pattern = dstdir + "\\*";
+	string pattern = dst + "\\*";
 
 	hndl = FindFirstFileA(pattern.c_str(), &d);
 	bool done = (hndl == INVALID_HANDLE_VALUE);
@@ -119,11 +121,11 @@ void remove_missing_directories(string srcdir, string dstdir)
 		{
 			if (d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
-				string dirToCheck = srcdir + SEP + d.cFileName;
-				if (!dirExists(dirToCheck))
+				string dirToCheck = src + SEP + d.cFileName;
+				if (!isDirectory(dirToCheck))
 				{
-					string dirToDelete = dstdir + SEP + d.cFileName;
-					remove_dir_recursive(dirToDelete);
+					string dirToRemove = dst + SEP + d.cFileName;
+					remove_dir(dirToRemove);
 				}
 			}
 		}
@@ -134,7 +136,7 @@ void remove_missing_directories(string srcdir, string dstdir)
 	FindClose(hndl);
 }
 
-void remove_dir_recursive(string root)
+void remove_dir(string root)
 {
 	WIN32_FIND_DATAA d;
 	HANDLE hndl = INVALID_HANDLE_VALUE;
@@ -150,7 +152,7 @@ void remove_dir_recursive(string root)
 			if (d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
 				string newroot = root + SEP + d.cFileName;
-				remove_dir_recursive(newroot);
+				remove_dir(newroot);
 			}
 			else
 			{
@@ -167,12 +169,12 @@ void remove_dir_recursive(string root)
 	RemoveDirectoryA(root.c_str());
 }
 
-void copy_all_files(string srcdir, string dstdir)
+void copy_all_files(string src, string dst)
 {
 	WIN32_FIND_DATAA d;
 	HANDLE hndl = INVALID_HANDLE_VALUE;
 
-	string pattern = srcdir + "\\*";
+	string pattern = src + "\\*";
 	hndl = FindFirstFileA(pattern.c_str(), &d);
 	bool done = (hndl == INVALID_HANDLE_VALUE);
 
@@ -182,15 +184,15 @@ void copy_all_files(string srcdir, string dstdir)
 		{
 			if (d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
-				string newsrc = srcdir + SEP + d.cFileName;
-				string newdst = dstdir + SEP + d.cFileName;
+				string newsrc = src + SEP + d.cFileName;
+				string newdst = dst + SEP + d.cFileName;
 
 				copy_all_files(newsrc, newdst);
 			}
 			else
 			{
-				string srcFile = srcdir + SEP + d.cFileName;
-				string dstFile = dstdir + SEP + d.cFileName;
+				string srcFile = src + SEP + d.cFileName;
+				string dstFile = dst + SEP + d.cFileName;
 
 				copyFile(srcFile, dstFile);
 			}
@@ -202,12 +204,12 @@ void copy_all_files(string srcdir, string dstdir)
 	FindClose(hndl);
 }
 
-void copy_new_and_updated_files(string srcdir, string dstdir)
+void copy_new_and_updated_files(string src, string dst)
 {
 	WIN32_FIND_DATAA d;
 	HANDLE hndl = INVALID_HANDLE_VALUE;
 
-	string pattern = srcdir + "\\*";
+	string pattern = src + "\\*";
 	hndl = FindFirstFileA(pattern.c_str(), &d);
 	bool done = (hndl == INVALID_HANDLE_VALUE);
 
@@ -217,15 +219,15 @@ void copy_new_and_updated_files(string srcdir, string dstdir)
 		{
 			if (d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
-				string newsrc = srcdir + SEP + d.cFileName;
-				string newdst = dstdir + SEP + d.cFileName;
+				string newsrc = src + SEP + d.cFileName;
+				string newdst = dst + SEP + d.cFileName;
 
 				copy_new_and_updated_files(newsrc, newdst);
 			}
 			else
 			{
-				string srcFile = srcdir + SEP + d.cFileName;
-				string dstFile = dstdir + SEP + d.cFileName;
+				string srcFile = src + SEP + d.cFileName;
+				string dstFile = dst + SEP + d.cFileName;
 
 				copyFileIfNewer(srcFile, dstFile);
 			}

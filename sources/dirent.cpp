@@ -15,14 +15,14 @@ const int MKDIR_MODE = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
 
 const string SEP = "/";
 
-bool fileExists(string file)
+bool isFile(string file)
 {
 	struct stat s;
 	int res = stat(file.c_str(), &s);
 	return (res != -1 && S_ISREG(s.st_mode));
 }
 
-bool dirExists(string dir)
+bool isDirectory(string dir)
 {
 	struct stat s;
 	int res = stat(dir.c_str(), &s);
@@ -43,83 +43,83 @@ void assert_can_open_directory(string dir)
 	closedir(d);
 }
 
-void create_subdirectories(string srcdir, string dstdir)
+void create_subdirectories(string src, string dst)
 {
-	DIR *src = opendir(srcdir.c_str());
+	DIR *srcdir = opendir(src.c_str());
 	struct dirent *ent;
 
-	while( (ent = readdir(src)) )
+	while( (ent = readdir(srcdir)) )
 	{
 		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
 		{
-			if(dirExists(ent->d_name))
+			if(isDirectory(ent->d_name))
 			{
-				string newdst = dstdir + SEP + ent->d_name;
-				string newsrc = srcdir + SEP + ent->d_name;
+				string newdst = dst + SEP + ent->d_name;
+				string newsrc = src + SEP + ent->d_name;
 				mkdir(newdst.c_str(), MKDIR_MODE);
 				create_subdirectories(newsrc, newdst);
 			}
 		}
 	}
 
-	closedir(src);
+	closedir(srcdir);
 }
 
-void remove_missing_files(string srcdir, string dstdir)
+void remove_missing_files(string src, string dst)
 {
-	DIR *dst = opendir(dstdir.c_str());
+	DIR *dstdir = opendir(dst.c_str());
 	struct dirent *ent;
 
-	while( (ent = readdir(dst)) )
+	while( (ent = readdir(dstdir)) )
 	{
 		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
 		{
-			if (dirExists(ent->d_name))
+			if (isDirectory(ent->d_name))
 			{
-				string newsrc = srcdir + SEP + ent->d_name;
-				string newdst = dstdir + SEP + ent->d_name;
+				string newsrc = src + SEP + ent->d_name;
+				string newdst = dst + SEP + ent->d_name;
 				remove_missing_files(newsrc, newdst);
 			}
 			else
 			{
-				string fileToCheck = srcdir + SEP + ent->d_name;
-				if (!fileExists(fileToCheck))
+				string fileToCheck = src + SEP + ent->d_name;
+				if (!isFile(fileToCheck))
 				{
-					string fileToRemove = dstdir + SEP + ent->d_name;
+					string fileToRemove = dst + SEP + ent->d_name;
 					remove(fileToRemove.c_str());
 				}
 			}
 		}
 	}
 
-	closedir(dst);
+	closedir(dstdir);
 }
 
-void remove_missing_directories(string srcdir, string dstdir)
+void remove_missing_directories(string src, string dst)
 {
-	DIR *dst = opendir(dstdir.c_str());
+	DIR *dstdir = opendir(dst.c_str());
 	struct dirent *ent;
 
-	while( (ent = readdir(dst)) )
+	while( (ent = readdir(dstdir)) )
 	{
 		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
 		{
-			if (dirExists(ent->d_name))
+			if (isDirectory(ent->d_name))
 			{
-				string dirToCheck = srcdir + SEP + ent->d_name;
-				if (!dirExists(dirToCheck))
+				string dirToCheck = src + SEP + ent->d_name;
+				if (!isDirectory(dirToCheck))
 				{
-					string dirToDelete = dstdir + SEP + ent->d_name;
-					remove_dir_recursive(dirToDelete);
+					string dirToRemove = dst + SEP + ent->d_name;
+					remove_dir(dirToRemove);
 				}
 			}
 		}
 	}
 
-	closedir(dst);
+	closedir(dstdir);
 }
 
-void remove_dir_recursive(string root)
+void remove_dir(string root)
 {
 	DIR *dir = opendir(root.c_str());
 	struct dirent *ent;
@@ -128,10 +128,10 @@ void remove_dir_recursive(string root)
 	{
 		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
 		{
-			if (dirExists(ent->d_name))
+			if (isDirectory(ent->d_name))
 			{
 				string newroot = root + SEP + ent->d_name;
-				remove_dir_recursive(newroot);
+				remove_dir(newroot);
 			}
 			else
 			{
@@ -145,62 +145,62 @@ void remove_dir_recursive(string root)
 	remove(root.c_str());
 }
 
-void copy_all_files(string srcdir, string dstdir)
+void copy_all_files(string src, string dst)
 {
-	DIR *src = opendir(srcdir.c_str());
+	DIR *srcdir = opendir(src.c_str());
 	struct dirent *ent;
 
-	while( (ent = readdir(src)) )
+	while( (ent = readdir(srcdir)) )
 	{
 		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
 		{
-			if (dirExists(ent->d_name))
+			if (isDirectory(ent->d_name))
 			{
-				string newsrc = srcdir + SEP + ent->d_name;
-				string newdst = dstdir + SEP + ent->d_name;
+				string newsrc = src + SEP + ent->d_name;
+				string newdst = dst + SEP + ent->d_name;
 
 				copy_all_files(newsrc, newdst);
 			}
 			else
 			{
-				string srcFile = srcdir + SEP + ent->d_name;
-				string dstFile = dstdir + SEP + ent->d_name;
+				string srcFile = src + SEP + ent->d_name;
+				string dstFile = dst + SEP + ent->d_name;
 
 				copyFile(srcFile, dstFile);
 			}
 		}
 	}
 
-	closedir(src);
+	closedir(srcdir);
 }
 
-void copy_new_and_updated_files(string srcdir, string dstdir)
+void copy_new_and_updated_files(string src, string dst)
 {
-	DIR *src = opendir(srcdir.c_str());
+	DIR *srcdir = opendir(src.c_str());
 	struct dirent *ent;
 
-	while( (ent = readdir(src)) )
+	while( (ent = readdir(srcdir)) )
 	{
 		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
 		{
-			if (dirExists(ent->d_name))
+			if (isDirectory(ent->d_name))
 			{
-				string newsrc = srcdir + SEP + ent->d_name;
-				string newdst = dstdir + SEP + ent->d_name;
+				string newsrc = src + SEP + ent->d_name;
+				string newdst = dst + SEP + ent->d_name;
 
 				copy_new_and_updated_files(newsrc, newdst);
 			}
 			else
 			{
-				string srcFile = srcdir + SEP + ent->d_name;
-				string dstFile = dstdir + SEP + ent->d_name;
+				string srcFile = src + SEP + ent->d_name;
+				string dstFile = dst + SEP + ent->d_name;
 
 				copyFileIfNewer(srcFile, dstFile);
 			}
 		}
 	}
 
-	closedir(src);
+	closedir(srcdir);
 }
 
 void copy_file_native(string srcFile, string dstFile)
