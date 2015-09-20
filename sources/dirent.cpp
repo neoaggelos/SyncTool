@@ -3,6 +3,24 @@
 #include <unistd.h>
 #include <utime.h>
 
+bool isFile(string path)
+{
+	struct stat st;
+	return (lstat(path.c_str(), &st) != -1) && TYPE(st) == S_IFREG;
+}
+
+bool isDirectory(string path)
+{
+	struct stat st;
+	return (lstat(path.c_str(), &st) != -1) && TYPE(st) == S_IFDIR;
+}
+
+bool isLink(string path)
+{
+	struct stat st;
+	return (lstat(path.c_str(), &st) != -1) && TYPE(st) == S_IFLNK;
+}
+
 /* Write with colorized output */
 void setColor(string color)
 {
@@ -53,6 +71,44 @@ void copyFile(string src, string dst)
 
 		/* also copy file permissions */
 		chmod(dst.c_str(), st.st_mode);
+	}
+}
+
+void copyLink(string src, string dst)
+{
+	int r;
+	char *target;
+	
+	int size = 1024;
+	struct stat st;
+
+	removeFile(dst);
+	
+	if ((r = lstat(src.c_str(), &st)) != -1)
+	{
+		size = st.st_size;
+	}
+
+	target = new char[size];
+
+	if (readlink(src.c_str(), target, size) == -1)
+		die(EXIT_FAILURE, "Error: Could not read link " + src);
+
+	logMessage("LN " + dst + " -> " + target, BLUE);
+
+	if (symlink(target, dst.c_str() == -1))
+		die(EXIT_FAILURE, "Error: Could not create link " + dst);
+
+	delete target;
+
+	if (r != -1)
+	{
+		struct utimbuf buf;
+
+		buf.actime = st.st_atime;
+		buf.modtime = st.st_mtime;
+
+		utime(dst.c_str(), &buf);
 	}
 }
 
@@ -110,6 +166,8 @@ void copyAllFiles(string src, string dst)
 			copyAllFiles(srcPath, dstPath);
 		else if (isFile(srcPath))
 			copyFile(srcPath, dstPath);
+		else if (isLink(srcPath))
+			copyLink(srcPath, dstPath);
 	}
 
 	closedir(d);
@@ -128,14 +186,16 @@ void copyNewAndUpdatedFiles(string src, string dst)
 		srcPath = src + '/' + ent->d_name;
 		dstPath = dst + '/' + ent->d_name;
 
-		if (isDirectory(srcPath) && isFile(dstPath))
-			logMessage("Warning: " + srcPath + " is a directory, but " + dstPath + " is a file.");
-		else if (isFile(srcPath) && isDirectory(dstPath))
-			logMessage("Warning: " + srcPath + " is a file, but " + dstPath + " is a directory.");
+		if (isDirectory(srcPath) && !isDirectory(dstPath))
+			logMessage("Warning: " + srcPath + " is a directory, but " + dstPath + " is not.");
+		else if (!isDirectory(srcPath) && isDirectory(dstPath))
+			logMessage("Warning: " + srcPath + " is not a directory, but " + dstPath + " is.");
 		else if (isDirectory(srcPath))
 			copyNewAndUpdatedFiles(srcPath, dstPath);
 		else if (isFile(srcPath) && isNewer(srcPath, dstPath))
 			copyFile(srcPath, dstPath);
+		else if (isLink(srcPath))
+			copyLink(srcPath, dstPath);
 	}
 
 	closedir(d);
@@ -156,7 +216,7 @@ void createDirectoryTree(const char* src, const char* dst)
 
 		if (isDirectory(srcPath) && !isDirectory(dstPath))
 		{
-			if (isFile(dstPath))
+			if (isFile(dstPath) || isLink(dstPath))
 				removeFile(dstPath);
 
 			logMessage("MK " + dstPath);
@@ -198,6 +258,8 @@ void removeMissing(string src, string dst)
 		if (isDirectory(dstPath) && !isDirectory(srcPath))
 			removeDirectory(dstPath);
 		else if (isFile(dstPath) && !isFile(srcPath))
+			removeFile(dstPath);
+		else if (isLink(dstPath) && !isLink(srcPath))
 			removeFile(dstPath);
 		else if (isDirectory(dstPath) && isDirectory(srcPath))
 			removeMissing(srcPath, dstPath);

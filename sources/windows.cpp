@@ -2,6 +2,18 @@
 #include <windows.h>
 #include <sys/utime.h>
 
+bool isFile(string path)
+{
+	DWORD dw = GetFileAttributesA(path.c_str());
+	return (dw != INVALID_FILE_ATTRIBUTES) && !(dw & FILE_ATTRIBUTE_DIRECTORY);
+}
+
+bool isDirectory(string path)
+{
+	DWORD dw = GetFileAttributesA(path.c_str());
+	return (dw != INVALID_FILE_ATTRIBUTES) && (dw & FILE_ATTRIBUTE_DIRECTORY);
+}
+
 /* Write with colorized output */
 void setColor(string color)
 {

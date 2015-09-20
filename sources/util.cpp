@@ -16,18 +16,6 @@ void die(int code, string msg)
 	exit(code);
 }
 
-bool isFile(string path)
-{
-	struct stat st;
-	return (stat(path.c_str(), &st) != -1) && TYPE(st) == S_IFREG;
-}
-
-bool isDirectory(string path)
-{
-	struct stat st;
-	return (stat(path.c_str(), &st) != -1) && TYPE(st) == S_IFDIR;
-}
-
 void printHelp()
 {
 	logMessage(
