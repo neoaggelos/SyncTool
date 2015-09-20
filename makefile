@@ -1,37 +1,25 @@
-### CHANGE THE FOLLOWING VALUES TO MUCH YOUR PREFERENCES ###
-
+# Change the following to suit your environment
 CXX=g++
+CXXFLAGS+=
 PREFIX=/usr/local
 
-### ADD HERE ANY LIBRARIES THAT MIGHT BE NEEDED FOR YOUR SYSTEM ###
+# Do not change anything below this line
+SOURCES=sources/util.cpp sources/main.cpp sources/synctool.cpp
+SOURCES_WIN=$(SOURCES) sources/windows.cpp
+SOURCES_LNX=$(SOURCES) sources/dirent.cpp
 
-LIBS=
+all: synctool
 
-### UNCOMMENT THE FOLLOWING LINE FOR A DEBUG BUILD ###
+.phony: install clean windows
 
-#CXXFLAGS+=-g -D_DEBUG 
+synctool: $(SOURCES_LNX)
+	$(CXX) $(SOURCES_LNX) -o synctool
 
+windows: $(SOURCES_WIN)
+	$(CXX) $(SOURCES_WIN) -o synctool.exe
 
-### DO NOT CHANGE ANYTHING BELOW THIS LINE ###
-
-SOURCES=$(shell find ./sources | grep cpp | grep -v "windows.cpp")
-OBJECTS=$(shell echo $(SOURCES) | sed -e "s,\.cpp,\.o,g")
-TARGET=synctool
-
-CXXFLAGS+=-Wall -pedantic
-
-all: prepare $(TARGET)
-
-$(TARGET): prepare $(OBJECTS)
-	$(CXX) $(LIBS) $(OBJECTS) -o $(TARGET)
-
-prepare:
-	if [ ! -d obj ]; then mkdir obj; fi
+install: synctool
+	install -c synctool $(PREFIX)/bin/synctool
 
 clean:
-	rm -rf $(OBJECTS) obj $(TARGET) build bin
-
-install:
-	if [ ! -d "$(PREFIX)/bin" ]; then mkdir -p "$(PREFIX)/bin"; fi
-	install $(TARGET) "$(PREFIX)/bin/$(TARGET)"
-	chmod 0775 "$(PREFIX)/bin/$(TARGET)"
+	rm -rf synctool build

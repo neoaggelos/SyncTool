@@ -1,246 +1,243 @@
-/*
-	File: windows.cpp
-	Author: Aggelos Kolaitis <neoaggelos@gmail.com>
-	Description: Implements sync commands using the WinAPI
-*/
-
 #include "synctool.h"
 #include <windows.h>
+#include <sys/utime.h>
 
-const string SEP = "\\";
-
-bool isFile(string file)
+/* Write with colorized output */
+void setColor(string color)
 {
-	DWORD res = GetFileAttributesA(file.c_str());
-	return res != INVALID_FILE_ATTRIBUTES && !(res & FILE_ATTRIBUTE_DIRECTORY);
-}
-
-bool isDirectory(string dir)
-{
-	DWORD res = GetFileAttributesA(dir.c_str());
-	return res != INVALID_FILE_ATTRIBUTES && (res & FILE_ATTRIBUTE_DIRECTORY);
-}
-
-void assert_can_open_directory(string dir)
-{
-	cout << "Asserting '" << dir << "' exists and is accessible..." << endl;
-	HANDLE hndl = INVALID_HANDLE_VALUE;
-	WIN32_FIND_DATAA d;
-
-	string pattern = dir + "\\*";
-
-	hndl = FindFirstFileA(pattern.c_str(), &d);
-
-	if (hndl == INVALID_HANDLE_VALUE)
+	if (gUseColors)
 	{
-		cout << "Error: Cannot open directory '" << dir << "'" << endl;
-		die(EXIT_FAILURE);
+		HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+		if (color == RED)
+			SetConsoleTextAttribute(h, WRED);
+		else if (color == BLUE)
+			SetConsoleTextAttribute(h, WBLUE);
+		else if (color == GREEN)
+			SetConsoleTextAttribute(h, WGREEN);
+		else if (color == WHITE)
+			SetConsoleTextAttribute(h, WWHITE);
 	}
 }
 
-void create_subdirectories(string src, string dst)
+/* File operations */
+void removeFile(string file)
 {
-	HANDLE hndl = INVALID_HANDLE_VALUE;
-	WIN32_FIND_DATAA d;
+	if (!isFile(file))
+		return;
 
-	string pattern = src + "\\*";
-
-	hndl = FindFirstFileA(pattern.c_str(), &d);
-	bool done = (hndl == INVALID_HANDLE_VALUE);
-	while (!done)
-	{
-		if (string(d.cFileName) != "." && string(d.cFileName) != "..")
-		{
-			if (d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			{
-				string newdst = dst + SEP + d.cFileName;
-				string newsrc = src + SEP + d.cFileName;
-				CreateDirectoryA(newdst.c_str(), NULL);
-				create_subdirectories(newsrc, newdst);
-			}
-		}
-
-		done = !FindNextFileA(hndl, &d);
-	}
-
-	FindClose(hndl);
+	logMessage("RM " + file, RED);
+	if (!DeleteFileA(file.c_str()))
+		die(EXIT_FAILURE, "Error: Could not delete " + file);
 }
 
-void remove_missing_files(string src, string dst)
+void copyFile(string src, string dst)
 {
-	HANDLE hndl = INVALID_HANDLE_VALUE;
+	if (!filesDiffer(src, dst))
+		return;
+
+	removeFile(dst);
+
+	logMessage("CP " + src + " -> " + dst, BLUE);
+	if (!CopyFileA(src.c_str(), dst.c_str(), FALSE))
+		die(EXIT_FAILURE, "Error: Could not copy " + src);
+
+	struct stat st;
+
+	if (stat(src.c_str(), &st) != -1)
+	{
+		struct utimbuf buf;
+
+		buf.actime = st.st_atime;
+		buf.modtime = st.st_mtime;
+		utime(dst.c_str(), &buf);
+	}
+}
+
+void removeDirectory(string dir)
+{
+	if (!isDirectory(dir))
+		return;
+
+	HANDLE h = INVALID_HANDLE_VALUE;
 	WIN32_FIND_DATAA d;
 
-	string pattern = dst + "\\*";
-
-	hndl = FindFirstFileA(pattern.c_str(), &d);
-	bool done = (hndl == INVALID_HANDLE_VALUE);
+	string regex = dir + "\\*";
+	h = FindFirstFileA(regex.c_str(), &d);
+	bool done = (h == INVALID_HANDLE_VALUE);
 
 	while (!done)
 	{
 		if (string(d.cFileName) != "." && string(d.cFileName) != "..")
 		{
-			if (d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			{
-				string newsrc = src + SEP + d.cFileName;
-				string newdst = dst + SEP + d.cFileName;
-				remove_missing_files(newsrc, newdst);
-			}
+			string path = dir + '\\' + d.cFileName;
+
+			if (isDirectory(path))
+				removeDirectory(path);
+			else if (isFile(path))
+				removeFile(path);
 			else
 			{
-				string fileToCheck = src + SEP + d.cFileName;
-				if (!isFile(fileToCheck))
+				logMessage("RM " + path, RED);
+				remove(path.c_str());
+			}
+		}
+		done = !FindNextFileA(h, &d);
+	}
+
+	FindClose(h);
+
+	logMessage("RM " + dir, RED);
+	if (!RemoveDirectoryA(dir.c_str()))
+		die(EXIT_FAILURE, "Error: Could not delete " + dir);
+}
+
+void assertCanOpenDirectory(string dir)
+{
+	HANDLE h = INVALID_HANDLE_VALUE;
+	WIN32_FIND_DATAA d;
+
+	string regex = dir + "\\*";
+	h = FindFirstFileA(regex.c_str(), &d);
+
+	if (h == INVALID_HANDLE_VALUE)
+		die(EXIT_FAILURE, "Error: Cannot access " + dir);
+
+	FindClose(h);
+}
+
+void copyAllFiles(string src, string dst)
+{
+	HANDLE h = INVALID_HANDLE_VALUE;
+	WIN32_FIND_DATAA d;
+
+	string regex = src + "\\*";
+	h = FindFirstFileA(regex.c_str(), &d);
+
+	bool done = (h == INVALID_HANDLE_VALUE);
+	while (!done)
+	{
+		if (string(d.cFileName) != "." && string(d.cFileName) != "..")
+		{
+			string srcPath = src + '\\' + d.cFileName;
+			string dstPath = dst + '\\' + d.cFileName;
+
+			if (isDirectory(srcPath))
+				copyAllFiles(srcPath, dstPath);
+			else if (isFile(srcPath))
+				copyFile(srcPath, dstPath);
+		}
+
+		done = !FindNextFileA(h, &d);
+	}
+
+	FindClose(h);
+}
+
+void copyNewAndUpdatedFiles(string src, string dst)
+{
+	HANDLE h = INVALID_HANDLE_VALUE;
+	WIN32_FIND_DATAA d;
+
+	string regex = src + "\\*";
+	h = FindFirstFileA(regex.c_str(), &d);
+
+	bool done = (h == INVALID_HANDLE_VALUE);
+	while (!done)
+	{
+		if (string(d.cFileName) != "." && string(d.cFileName) != "..")
+		{
+			string srcPath = src + '\\' + d.cFileName;
+			string dstPath = dst + '\\' + d.cFileName;
+
+			if (isDirectory(srcPath) && isFile(dstPath))
+				logMessage("Warning: " + srcPath + " is a directory, but " + dstPath + " is a file.");
+			else if (isFile(srcPath) && isDirectory(dstPath))
+				logMessage("Warning: " + srcPath + " is a file, but " + dstPath + " is a directory.");
+			else if (isDirectory(srcPath))
+				copyNewAndUpdatedFiles(srcPath, dstPath);
+			else if (isFile(srcPath) && isNewer(srcPath, dstPath))
+				copyFile(srcPath, dstPath);
+		}
+
+		done = !FindNextFileA(h, &d);
+	}
+
+	FindClose(h);
+}
+
+void createDirectoryTree(string src, string dst)
+{
+	HANDLE h = INVALID_HANDLE_VALUE;
+	WIN32_FIND_DATAA d;
+
+	string regex = src + "\\*";
+	h = FindFirstFileA(regex.c_str(), &d);
+
+	bool done = (h == INVALID_HANDLE_VALUE);
+	while (!done)
+	{
+		if (string(d.cFileName) != "." && string(d.cFileName) != "..")
+		{
+			string srcPath = src + '\\' + d.cFileName;
+			string dstPath = dst + '\\' + d.cFileName;
+
+			if (isDirectory(srcPath) && !isDirectory(dstPath))
+			{
+				if (isFile(dstPath))
+					removeFile(dstPath);
+
+				logMessage("MK " + dstPath, GREEN);
+				if (!CreateDirectoryA(dstPath.c_str(), NULL))
+					die(EXIT_FAILURE, "Error: Could not create " + dstPath);
+
+				struct stat st;
+
+				if (stat(srcPath.c_str(), &st)!=-1)
 				{
-					string fileToRemove = dst + SEP + d.cFileName;
-					DeleteFileA(fileToRemove.c_str());
+					struct utimbuf buf;
+					buf.actime = st.st_atime;
+					buf.modtime = st.st_mtime;
+
+					utime(dstPath.c_str(), &buf);
 				}
 			}
+
+			if (isDirectory(srcPath) && isDirectory(dstPath))
+				createDirectoryTree(srcPath, dstPath);
 		}
 
-		done = !FindNextFileA(hndl, &d);
+		done = !FindNextFileA(h, &d);
 	}
 
-	FindClose(hndl);
+	FindClose(h);
 }
 
-
-
-void remove_missing_directories(string src, string dst)
+void removeMissing(string src, string dst)
 {
-	HANDLE hndl = INVALID_HANDLE_VALUE;
+	HANDLE h = INVALID_HANDLE_VALUE;
 	WIN32_FIND_DATAA d;
 
-	string pattern = dst + "\\*";
+	string regex = dst + "\\*";
+	h = FindFirstFileA(regex.c_str(), &d);
 
-	hndl = FindFirstFileA(pattern.c_str(), &d);
-	bool done = (hndl == INVALID_HANDLE_VALUE);
-
+	bool done = (h == INVALID_HANDLE_VALUE);
 	while (!done)
 	{
 		if (string(d.cFileName) != "." && string(d.cFileName) != "..")
 		{
-			if (d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			{
-				string dirToCheck = src + SEP + d.cFileName;
-				if (!isDirectory(dirToCheck))
-				{
-					string dirToRemove = dst + SEP + d.cFileName;
-					remove_dir(dirToRemove);
-				}
-			}
+			string srcPath = src + '\\' + d.cFileName;
+			string dstPath = dst + '\\' + d.cFileName;
+
+			if (isDirectory(dstPath) && !isDirectory(srcPath))
+				removeDirectory(dstPath);
+			else if (isFile(dstPath) && !isFile(srcPath))
+				removeFile(dstPath);
+			else if (isDirectory(dstPath) && isDirectory(srcPath))
+				removeMissing(srcPath, dstPath);
 		}
 
-		done = !FindNextFileA(hndl, &d);
+		done = !FindNextFileA(h, &d);
 	}
 
-	FindClose(hndl);
-}
-
-void remove_dir(string root)
-{
-	WIN32_FIND_DATAA d;
-	HANDLE hndl = INVALID_HANDLE_VALUE;
-	string pattern = root + "\\*";
-
-	hndl = FindFirstFileA(pattern.c_str(), &d);
-	bool done = (hndl == INVALID_HANDLE_VALUE);
-
-	while (!done)
-	{
-		if (string(d.cFileName) != "." && string(d.cFileName) != "..")
-		{
-			if (d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			{
-				string newroot = root + SEP + d.cFileName;
-				remove_dir(newroot);
-			}
-			else
-			{
-				string fileToRemove = root + SEP + d.cFileName;
-				DeleteFileA(fileToRemove.c_str());
-			}
-
-		}
-
-		done = !FindNextFileA(hndl, &d);
-	}
-
-	FindClose(hndl);
-	RemoveDirectoryA(root.c_str());
-}
-
-void copy_all_files(string src, string dst)
-{
-	WIN32_FIND_DATAA d;
-	HANDLE hndl = INVALID_HANDLE_VALUE;
-
-	string pattern = src + "\\*";
-	hndl = FindFirstFileA(pattern.c_str(), &d);
-	bool done = (hndl == INVALID_HANDLE_VALUE);
-
-	while (!done)
-	{
-		if (string(d.cFileName) != "." && string(d.cFileName) != "..")
-		{
-			if (d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			{
-				string newsrc = src + SEP + d.cFileName;
-				string newdst = dst + SEP + d.cFileName;
-
-				copy_all_files(newsrc, newdst);
-			}
-			else
-			{
-				string srcFile = src + SEP + d.cFileName;
-				string dstFile = dst + SEP + d.cFileName;
-
-				copyFile(srcFile, dstFile);
-			}
-		}
-
-		done = !FindNextFileA(hndl, &d);
-	}
-
-	FindClose(hndl);
-}
-
-void copy_new_and_updated_files(string src, string dst)
-{
-	WIN32_FIND_DATAA d;
-	HANDLE hndl = INVALID_HANDLE_VALUE;
-
-	string pattern = src + "\\*";
-	hndl = FindFirstFileA(pattern.c_str(), &d);
-	bool done = (hndl == INVALID_HANDLE_VALUE);
-
-	while (!done)
-	{
-		if (string(d.cFileName) != "." && string(d.cFileName) != "..")
-		{
-			if (d.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			{
-				string newsrc = src + SEP + d.cFileName;
-				string newdst = dst + SEP + d.cFileName;
-
-				copy_new_and_updated_files(newsrc, newdst);
-			}
-			else
-			{
-				string srcFile = src + SEP + d.cFileName;
-				string dstFile = dst + SEP + d.cFileName;
-
-				copyFileIfNewer(srcFile, dstFile);
-			}
-		}
-
-		done = !FindNextFileA(hndl, &d);
-	}
-
-	FindClose(hndl);
-}
-
-void copy_file_native(string srcFile, string dstFile)
-{
-	DeleteFileA(dstFile.c_str());
-	CopyFileA(srcFile.c_str(), dstFile.c_str(), FALSE);
+	FindClose(h);
 }

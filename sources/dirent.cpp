@@ -1,219 +1,208 @@
-/*
-	File: dirent.cpp
-	Author: Aggelos Kolaitis <neoaggelos@gmail.com>
-	Description: Implements sync commands for the dirent.h interface
-*/
-
 #include "synctool.h"
 #include <dirent.h>
 #include <unistd.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <fstream>
+#include <utime.h>
 
-const int MKDIR_MODE = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
-
-const string SEP = "/";
-
-bool isFile(string file)
+/* Write with colorized output */
+void setColor(string color)
 {
-	struct stat s;
-	int res = stat(file.c_str(), &s);
-	return (res != -1 && S_ISREG(s.st_mode));
+	if (gUseColors)
+		cout << color;
 }
 
-bool isDirectory(string dir)
+/* File operations */
+void removeFile(string file)
 {
-	struct stat s;
-	int res = stat(dir.c_str(), &s);
-	return (res != -1 && S_ISDIR(s.st_mode));
+	if (!isFile(file))
+		return;
+
+	logMessage("RM " + file, RED);
+	if(remove(file.c_str()) == -1)
+		die(EXIT_FAILURE, "Error: Could not delete " + file);
 }
 
-void assert_can_open_directory(string dir)
+void copyFile(string src, string dst)
 {
-	cout << "Asserting '" << dir << "' exists and is accessible..." << endl;
-	DIR *d = opendir(dir.c_str());
+	if (!filesDiffer(src, dst))
+		return;
 
-	if (d == NULL)
+	if (isFile(dst))
+		removeFile(dst);
+
+	logMessage("CP " + src + " -> " + dst, BLUE);
+	
+	ifstream fin(src.c_str(), ios::binary);
+	ifstream fout(dst.c_str(), ios::binary);
+
+	if (!(fin.is_open() && fout.is_open() && (fout << fin.rdbuf())))
+		die(EXIT_FAILURE, "Error: Could not copy " + src);
+
+	fin.close();
+	fout.close();
+
+	struct stat st;
+
+	if (stat(src.c_str(), &st) != -1)
 	{
-		cout << "Error: Cannot open directory '" << dir << "'" << endl;
-		die(EXIT_FAILURE);
+		struct utimbuf buf;
+
+		buf.actime = st.st_atime;
+		buf.modtime = st.st_mtime;
+
+		utime(dst.c_str(), &buf);
+
+		/* also copy file permissions */
+		chmod(dst.c_str(), st.st_mode);
+	}
+}
+
+void removeDirectory(string dir)
+{
+	if (!isDirectory(dir))
+		return;
+
+	DIR *d = opendir(dir);
+	struct dirent *ent = NULL;
+
+	while ((ent = readdir(d)))
+	{
+		if (string(ent->d_name) == "." || string(ent->d_name) == "..")
+			continue;
+
+		path = dir + '/' + ent->d_name;
+
+		if (isDirectory(path))
+			removeDirectory(path);
+		else
+			removeFile(path);
+	}
+
+	closedir(d);
+
+	logMessage("RM " + dir, RED);
+	if (rmdir(dir.c_str()) == -1)
+		die(EXIT_FAILURE, "Error: Could not delete " + dir);
+}
+
+void assertCanOpenDirectory(string dir)
+{
+	DIR *d = opendir(dir.c_str());
+	if (d == NULL)
+		die(EXIT_FAILURE, "Error: Cannot access " + dir);
+
+	closedir(d);
+}
+
+void copyAllFiles(string src, string dst)
+{
+	DIR *d = opendir(src.c_str());
+	struct dirent *ent = NULL;
+
+	while ((ent = readdir(d)))
+	{
+		if (string(ent->d_name) == "." || string(ent->d_name) == "..")
+			continue;
+
+		srcPath = src + '/' + ent->d_name;
+		dstPath = dst + '/' + ent->d_name;
+
+		if (isDirectory(srcPath))
+			copyAllFiles(srcPath, dstPath);
+		else if (isFile(srcPath))
+			copyFile(srcPath, dstPath);
 	}
 
 	closedir(d);
 }
 
-void create_subdirectories(string src, string dst)
+void copyNewAndUpdatedFiles(string src, string dst)
 {
-	DIR *srcdir = opendir(src.c_str());
-	struct dirent *ent;
+	DIR *d = opendir(src.c_str());
+	struct dirent *ent = NULL;
 
-	while( (ent = readdir(srcdir)) )
+	while ((ent = readdir(d)))
 	{
-		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
-		{
-			if(isDirectory(ent->d_name))
-			{
-				string newdst = dst + SEP + ent->d_name;
-				string newsrc = src + SEP + ent->d_name;
-				mkdir(newdst.c_str(), MKDIR_MODE);
-				create_subdirectories(newsrc, newdst);
-			}
-		}
+		if (string(ent->d_name) == "." || string(ent->d_name) == "..")
+			continue;
+
+		srcPath = src + '/' + ent->d_name;
+		dstPath = dst + '/' + ent->d_name;
+
+		if (isDirectory(srcPath) && isFile(dstPath))
+			logMessage("Warning: " + srcPath + " is a directory, but " + dstPath + " is a file.");
+		else if (isFile(srcPath) && isDirectory(dstPath))
+			logMessage("Warning: " + srcPath + " is a file, but " + dstPath + " is a directory.");
+		else if (isDirectory(srcPath))
+			copyNewAndUpdatedFiles(srcPath, dstPath);
+		else if (isFile(srcPath) && isNewer(srcPath, dstPath))
+			copyFile(srcPath, dstPath);
 	}
 
-	closedir(srcdir);
+	closedir(d);
 }
 
-void remove_missing_files(string src, string dst)
+void createDirectoryTree(const char* src, const char* dst)
 {
-	DIR *dstdir = opendir(dst.c_str());
-	struct dirent *ent;
+	DIR *d = opendir(src.c_str());
+	struct dirent *ent = NULL;
 
-	while( (ent = readdir(dstdir)) )
+	while ((ent = readdir(d)))
 	{
-		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
+		if (string(ent->d_name) == "." || string(ent->d_name) == "..")
+			continue;
+
+		srcPath = src + '/' + ent->d_name;
+		dstPath = dst + '/' + ent->d_name;
+
+		if (isDirectory(srcPath) && !isDirectory(dstPath))
 		{
-			if (isDirectory(ent->d_name))
+			if (isFile(dstPath))
+				removeFile(dstPath);
+
+			logMessage("MK " + dstPath);
+			if (mkdir(dstPath.c_str(), 0775) == -1)
+				die(EXIT_FAILURE, "Could not create " + dstPath);
+
+			struct stat st;
+
+			if (stat(srcPath.c_str(), &st) != -1)
 			{
-				string newsrc = src + SEP + ent->d_name;
-				string newdst = dst + SEP + ent->d_name;
-				remove_missing_files(newsrc, newdst);
-			}
-			else
-			{
-				string fileToCheck = src + SEP + ent->d_name;
-				if (!isFile(fileToCheck))
-				{
-					string fileToRemove = dst + SEP + ent->d_name;
-					remove(fileToRemove.c_str());
-				}
+				struct utimbuf buf;
+				buf.actime = st.st_atime;
+				buf.modtime = st.st_mtime;
+
+				utime(dstPath.c_str(), &buf);
 			}
 		}
+
+		if (isDirectory(srcPath) && isDirectory(dstPath))
+			createDirectoryTree(srcPath, dstPath);
 	}
 
-	closedir(dstdir);
+	closedir(d);
 }
 
-void remove_missing_directories(string src, string dst)
+void removeMissing(string src, string dst)
 {
-	DIR *dstdir = opendir(dst.c_str());
+	DIR *d = opendir(dst);
 	struct dirent *ent;
 
-	while( (ent = readdir(dstdir)) )
+	while ((ent = readdir(d)))
 	{
-		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
-		{
-			if (isDirectory(ent->d_name))
-			{
-				string dirToCheck = src + SEP + ent->d_name;
-				if (!isDirectory(dirToCheck))
-				{
-					string dirToRemove = dst + SEP + ent->d_name;
-					remove_dir(dirToRemove);
-				}
-			}
-		}
+		if (string(ent->d_name) == "." || string(ent->d_name) == "..")
+			continue;
+
+		srcPath = src + '/' + ent->d_name;
+		dstPath = dst + '/' + ent->d_name;
+
+		if (isDirectory(dstPath) && !isDirectory(srcPath))
+			removeDirectory(dstPath);
+		else if (isFile(dstPath) && !isFile(srcPath))
+			removeFile(dstPath);
+		else if (isDirectory(dstPath) && isDirectory(srcPath))
+			removeMissing(srcPath, dstPath);
+
 	}
 
-	closedir(dstdir);
-}
-
-void remove_dir(string root)
-{
-	DIR *dir = opendir(root.c_str());
-	struct dirent *ent;
-
-	while( (ent = readdir(dir)) )
-	{
-		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
-		{
-			if (isDirectory(ent->d_name))
-			{
-				string newroot = root + SEP + ent->d_name;
-				remove_dir(newroot);
-			}
-			else
-			{
-				string fileToRemove = root + SEP + ent->d_name;
-				remove(fileToRemove.c_str());
-			}
-		}
-	}
-
-	closedir(dir);
-	remove(root.c_str());
-}
-
-void copy_all_files(string src, string dst)
-{
-	DIR *srcdir = opendir(src.c_str());
-	struct dirent *ent;
-
-	while( (ent = readdir(srcdir)) )
-	{
-		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
-		{
-			if (isDirectory(ent->d_name))
-			{
-				string newsrc = src + SEP + ent->d_name;
-				string newdst = dst + SEP + ent->d_name;
-
-				copy_all_files(newsrc, newdst);
-			}
-			else
-			{
-				string srcFile = src + SEP + ent->d_name;
-				string dstFile = dst + SEP + ent->d_name;
-
-				copyFile(srcFile, dstFile);
-			}
-		}
-	}
-
-	closedir(srcdir);
-}
-
-void copy_new_and_updated_files(string src, string dst)
-{
-	DIR *srcdir = opendir(src.c_str());
-	struct dirent *ent;
-
-	while( (ent = readdir(srcdir)) )
-	{
-		if (string(ent->d_name) != "." && string(ent->d_name) != "..")
-		{
-			if (isDirectory(ent->d_name))
-			{
-				string newsrc = src + SEP + ent->d_name;
-				string newdst = dst + SEP + ent->d_name;
-
-				copy_new_and_updated_files(newsrc, newdst);
-			}
-			else
-			{
-				string srcFile = src + SEP + ent->d_name;
-				string dstFile = dst + SEP + ent->d_name;
-
-				copyFileIfNewer(srcFile, dstFile);
-			}
-		}
-	}
-
-	closedir(srcdir);
-}
-
-void copy_file_native(string srcFile, string dstFile)
-{
-	ifstream src(srcFile.c_str(), ios::binary);
-	ofstream dst(dstFile.c_str(), ios::binary);
-
-	dst << src.rdbuf();
-
-	/* also copy permissions */
-	struct stat st;
-	if (stat(srcFile.c_str(), &st) != -1)
-	{
-		chmod(dstFile.c_str(), st.st_mode);
-	}
+	closedir(d);
 }

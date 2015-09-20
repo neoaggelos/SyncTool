@@ -1,71 +1,51 @@
-/*
-	File: main.cpp
-	Author: Aggelos Kolaitis <neoaggelos@gmail.com>
-	Description: The main() program
-*/
-
 #include "synctool.h"
+
+/* Command line options */
+int gUseColors = 1;
+int gFastMode = 0;
+string gSyncMode = "mirror";
 
 int main(int argc, char** argv)
 {
-	/* Figure out source and destination directories */
-	string src, dst, mode;
+	string src = "", dst = "";
 
-	if (argc != 4)
+	/* Handle command-line arguments */
+	for (int i = 1; i < argc; i++)
 	{
+		string arg(argv[i]);
+
+		if (arg == "-c" || arg == "--color")
+			gUseColors = 1;
+		else if (arg == "--no-color")
+			gUseColors = 0;
+		else if (arg == "-f" || arg == "--fast")
+			gFastMode = 1;
+		else if (arg == "--no-fast")
+			gFastMode = 0;
+		else if (arg == "-m" || arg == "--mirror")
+			gSyncMode = "mirror";
+		else if (arg == "-a" || arg == "--append")
+			gSyncMode = "append";
+		else if (!isDirectory(arg) || (src != "" && dst != ""))
+			logMessage("Warning: Unknown option " + arg);
+		else if (src == "")
+			src = arg;
+        else if (dst == "")
+            dst = arg;
+	}
+
+	if (src == "" || dst == "")
+	{
+		logMessage("Error: Source and destination not specified");
 		printHelp();
-		die(EXIT_FAILURE);
 	}
 
-	/* Set source, destination and sync mode */
-	src = argv[1];
-	dst = argv[2];
+	if (src == dst)
+		die(EXIT_FAILURE, "Error: Source and destination can't be the same");
 
-	/* Make sure directories are accessible */
-	assert_can_open_directory(src);
-	assert_can_open_directory(dst);
+	assertCanOpenDirectory(src);
+	assertCanOpenDirectory(dst);
+	doSync(src, dst);
 
-	/* Set sync mode */
-	if (string(argv[3]) == "--mirror" || string(argv[3]) == "-m")
-	{
-		mode = "Mirror";
-	}
-	else if (string(argv[3]) == "--append" || string(argv[3]) == "-a")
-	{
-		mode = "Append";
-	}
-	else if (string(argv[3]) == "--shared" || string(argv[3]) == "-s")
-	{
-		mode = "Shared";
-	}
-	else
-	{
-		cout << "Error: Unknown sync mode: '" << argv[3] << "'" << endl << endl;
-		printHelp();
-		die(EXIT_FAILURE);
-	}
-
-#ifdef _DEBUG
-	cout << "SyncTool version: " << VERSION << endl << endl
-		<< "Source: '" << src << "'" << endl
-		<< "Destination: '" << dst << "'" << endl
-		<< "Sync mode: '" << mode << "'" << endl << endl;
-#endif
-
-	if (mode == "Mirror")
-	{
-		doMirrorSync(src, dst);
-	}
-	else if (mode == "Append")
-	{
-		doAppendSync(src, dst);
-	}
-	else if (mode == "Shared")
-	{
-		doSharedSync(src, dst);
-	}
-
-	cout << "Success!" << endl << endl;
-
-	die(EXIT_SUCCESS);
+	die(EXIT_SUCCESS, "Done!");
 }

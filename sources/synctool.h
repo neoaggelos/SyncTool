@@ -1,58 +1,67 @@
-/*
-	File: synctool.h
-	Author: Aggelos Kolaitis <neoaggelos@gmail.com>
-	Description: Main header file
-*/
-
 #ifndef _synctool_h
 #define _synctool_h
 
-#include <cstdio>
-#include <cstdlib>
+/* Header files */
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#ifdef _MSC_VER
-#include <sys/utime.h>
-#else
-#include <utime.h>
-#endif
-
-
-/* i'm bored of writing std::string and std::cout */
 using namespace std;
 
-/* program version */
-#define VERSION "0.1"
+/* Synctool version */
+#define VERSION "0.2"
 
-/* program routines */
-void printHelp(void);
-void doMirrorSync(string src, string dst);
-void doAppendSync(string src, string dst);
-void doSharedSync(string src, string dst);
+/* Buffer size to use in File IO */
+#define BUFFER_SIZE 8192
 
-/* DIE */
-void die(int code);
+/* Filetype reported by stat() */
+#define TYPE(st) ((st).st_mode & S_IFMT)
+
+/* setColor(RED - GREEN - BLUE - WHITE) */
+void setColor(string color);
+
+/* Color macros */
+#define RED			"\033[22;31m"
+#define GREEN		"\033[22;32m"
+#define BLUE		"\033[22;34m"
+#define WHITE 		"\033[01;37m"
+#define WRED		FOREGROUND_INTENSITY|FOREGROUND_RED
+#define WBLUE		FOREGROUND_INTENSITY|FOREGROUND_BLUE
+#define WGREEN		FOREGROUND_INTENSITY|FOREGROUND_GREEN
+#define WWHITE		FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE
 
 /* utility functions */
-bool isFile(string file);
-bool isDirectory(string dir);
-bool fileIsNewer(string newFile, string oldFile);
-bool filesDiffer(string a, string b);
-void copyFile(string srcFile, string dstFile);
-void copyFileIfNewer(string srcFile, string dstFile);
+void logMessage(string msg, string color = WHITE);
+void die(int code, string msg = "");
+void printHelp();
+bool isFile(string path);
+bool isDirectory(string path);
+bool isNewer(string newFile, string oldFile);
+bool filesDiffer(string A, string B);
 
-/* common actions using in the different sync modes */
-void assert_can_open_directory(string dir);
-void remove_missing_files(string src, string dst);
-void remove_missing_directories(string src, string dst);
-void remove_dir(string root);
-void create_subdirectories(string src, string dst);
-void copy_file_native(string src, string dst);
-void copy_all_files(string src, string dst);
-void copy_new_and_updated_files(string src, string dst);
+/* File operations */
+void copyFile(string src, string dst);
+void removeFile(string file);
+void removeDirectory(string dir);
+
+/* Native sync operations */
+void assertCanOpenDirectory(string dir);
+void copyAllFiles(string src, string dst);
+void copyNewAndUpdatedFiles(string src, string dst);
+void createDirectoryTree(string src, string dst);
+void removeMissing(string src, string dst);
+
+/* Super function */
+void doSync(string src, string dst);
+
+/* globals that are set from command line options */
+extern int gUseColors;
+extern int gFastMode;
+extern string gSyncMode;
 
 #endif /* _synctool_h */

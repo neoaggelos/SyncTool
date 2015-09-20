@@ -1,91 +1,102 @@
-/*
-	File: util.cpp
-	Author: Aggelos Kolaitis <neoaggelos@gmail.com>
-	Description: Implements common utility functions
-*/
-
 #include "synctool.h"
 
-void printHelp()
+void logMessage(string msg, string color)
 {
-	cout << "SyncTool version: " << VERSION << endl << endl
-		<< "Usage:" << endl
-		<< "$ synctool [source] [destination] [mode]" << endl
-		<< "$ synctool --help" << endl << endl
-		<< "Available sync modes:" << endl
-		<< "  --mirror,  -m" << endl
-		<< "  --append,  -a" << endl
-		<< "  --shared,  -s" << endl << endl;
+	setColor(color);
+	cout << msg << endl;
 }
 
-void die(int code)
+void die(int code, string msg)
 {
-	cout << endl << "Press enter to quit..." << endl;
-	(void) getchar();
+	setColor(WHITE);
+	cout << endl << endl << msg << endl << endl
+		<< "Press enter to exit..." << endl;
+
+	(void)getchar();
 	exit(code);
 }
 
-bool fileIsNewer(string newFile, string oldFile)
+bool isFile(string path)
 {
-	struct stat o, n;
-	stat(oldFile.c_str(), &o);
-	stat(newFile.c_str(), &n);
-
-	/* it's newer when it's modified last, thus its mtime is bigger */
-	return n.st_mtime > o.st_mtime;
+	struct stat st;
+	return (stat(path.c_str(), &st) != -1) && TYPE(st) == S_IFREG;
 }
 
-bool filesDiffer(string a, string b)
+bool isDirectory(string path)
 {
-	struct stat as, bs;
+	struct stat st;
+	return (stat(path.c_str(), &st) != -1) && TYPE(st) == S_IFDIR;
+}
 
-	/* if size is different, files cant be the same */
-	if (stat(a.c_str(), &as) != -1 && stat(b.c_str(), &bs) != -1 && as.st_size != bs.st_size)
+void printHelp()
+{
+	logMessage(
+		"SyncTool version " VERSION "\n\n"
+		"Usage:\n"
+		"# synctool [source] [dest] <options>\n\n"
+		"Options:\n"
+		"  -f,   --fast  : Use a faster (but less reliable) method of comparing files\n"
+		"     --no-fast  : Disable fast mode\n"
+		"  -c,  --color  : Colorize program output\n"
+		"    --no-color  : Disable colorized output\n"
+		"  -m, --mirror  : Use mirror sync mode\n"
+		"  -a, --append  : Use append sync mode\n"
+	);
+	die(EXIT_SUCCESS);
+}
+
+
+bool isNewer(string newFile, string oldFile)
+{
+	struct stat n, o;
+	int rn = stat(newFile.c_str(), &n);
+	int ro = stat(oldFile.c_str(), &o);
+
+	return (rn != -1) && (ro != -1) && (n.st_mtime > o.st_mtime);
+}
+
+bool filesDiffer(string A, string B)
+{
+	if (!isFile(A) || !isFile(B))
 		return true;
 
-	ifstream af(a, ios::binary);
-	ifstream bf(b, ios::binary);
+	struct stat stA, stB;
 
-	char ach, bch;
+	logMessage(A);
+	if (stat(A.c_str(), &stA) == -1 || stat(B.c_str(), &stB) == -1)
+		return true;
 
-	do {
-		/* if both files reach EOF together then they are the same */
-		if (!af.good() && !bf.good())
-			return false;
-
-		/* if one files reaches EOF and the other doesn't they differ */
-		if ((af.good() && !bf.good()) || (!af.good() && bf.good()))
+	if (gFastMode)
+	{
+		return (stA.st_size != stB.st_size);
+	}
+	else
+	{
+		if (stA.st_size != stB.st_size)
 			return true;
 
-		af.get(ach);
-		bf.get(bch);
-	} while (ach != bch);
+		FILE *fa, *fb;
 
-	return true;
-}
+		if (((fa = fopen(A.c_str(), "rb")) == NULL) || ((fb = fopen(B.c_str(), "rb")) == NULL))
+			return true;
 
-void copyFile(string srcFile, string dstFile)
-{
-	if (filesDiffer(srcFile, dstFile))
-	{
-		copy_file_native(srcFile, dstFile);
-	}
+		char a[BUFFER_SIZE], b[BUFFER_SIZE];
+		int nReadA, nReadB;
 
-	/* update modification time to that of the source file */
-	struct stat s;
-	if (stat(srcFile.c_str(), &s) != -1)
-	{
-		struct utimbuf newTime;
-		newTime.actime = s.st_atime;
-		newTime.modtime = s.st_mtime;
-		utime(dstFile.c_str(), &newTime);
-	}
-}
+		while (((nReadA = fread(a, sizeof(char), BUFFER_SIZE, fa)) != 0) && ((nReadB = fread(b, sizeof(char), BUFFER_SIZE, fb)) != 0))
+		{
+			if ((nReadA != nReadB) || memcmp(a, b, nReadA) != 0)
+			{
+				fclose(fa);
+				fclose(fb);
 
-void copyFileIfNewer(string srcFile, string dstFile)
-{
-	if (fileIsNewer(srcFile, dstFile))
-	{
-		copyFile(srcFile, dstFile);
+				return true;
+			}
+		}
+
+		fclose(fa);
+		fclose(fb);
+
+		return false;
 	}
 }
