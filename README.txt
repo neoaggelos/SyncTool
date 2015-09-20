@@ -36,21 +36,21 @@ You use SyncTool by opening a command prompt and typing (without the #):
 Options:
 
  -m,  --mirror : Run in mirror mode. SyncTool will delete all files from [dest]
-				 not present in [source] and copy all files from [source] 
-				 to [dest], overwriting any files in [dest] if needed.
+                 not present in [source] and copy all files from [source] 
+                 to [dest], overwriting any files in [dest] if needed.
 
  -a,  --append : Run in append mode. In this mode, no files from [dest] will be
-				 deleted. Furthermore, only new and updated files from [source]
-				 are synced to [dest].
+                 deleted. Furthermore, only new and updated files from [source]
+                 are synced to [dest].
 
  -c,   --color : Colorize program output
     --no-color : Disable previous option
 
  -f,    --fast : Speeds up file comparison. With this option, SyncTool will
-				 assume that if [source]/afile has the same size as [dest]/afile
-				 then they are identical and no sync is required. This can speed
-				 up syncing of video, music and image files. However, it may not
-				 be desired when syncing critical text files.
+                 assume that if [source]/afile has the same size as [dest]/afile
+                 then they are identical and no sync is required. This can speed
+                 up syncing of video, music and image files. However, it may not
+                 be desired when syncing critical text files.
      --no-fast : Disable previous option.
 
 ================================================================================
