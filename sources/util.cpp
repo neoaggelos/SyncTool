@@ -50,7 +50,6 @@ bool filesDiffer(string A, string B)
 
 	struct stat stA, stB;
 
-	logMessage(A);
 	if (stat(A.c_str(), &stA) == -1 || stat(B.c_str(), &stB) == -1)
 		return true;
 
