@@ -117,7 +117,7 @@ void removeDirectory(string dir)
 	if (!isDirectory(dir))
 		return;
 
-	DIR *d = opendir(dir);
+	DIR *d = opendir(dir.c_str());
 	struct dirent *ent = NULL;
 
 	while ((ent = readdir(d)))
@@ -244,7 +244,7 @@ void createDirectoryTree(const char* src, const char* dst)
 
 void removeMissing(string src, string dst)
 {
-	DIR *d = opendir(dst);
+	DIR *d = opendir(dst.c_str());
 	struct dirent *ent;
 
 	while ((ent = readdir(d)))
