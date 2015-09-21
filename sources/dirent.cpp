@@ -96,7 +96,7 @@ void copyLink(string src, string dst)
 
 	logMessage("LN " + dst + " -> " + target, BLUE);
 
-	if (symlink(target, dst.c_str() == -1))
+	if (symlink(target, dst.c_str()) == -1)
 		die(EXIT_FAILURE, "Error: Could not create link " + dst);
 
 	delete target;
@@ -201,7 +201,7 @@ void copyNewAndUpdatedFiles(string src, string dst)
 	closedir(d);
 }
 
-void createDirectoryTree(const char* src, const char* dst)
+void createDirectoryTree(string src, string dst)
 {
 	DIR *d = opendir(src.c_str());
 	struct dirent *ent = NULL;
