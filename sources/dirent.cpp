@@ -31,7 +31,7 @@ void setColor(string color)
 /* File operations */
 void removeFile(string file)
 {
-	if (!isFile(file))
+	if (isDirectory(file))
 		return;
 
 	logMessage("RM " + file, RED);
@@ -91,11 +91,12 @@ void copyLink(string src, string dst)
 		size = st.st_size;
 	}
 
-	target = new char[size];
+	target = new char[size+1];
 
 	if (readlink(src.c_str(), target, size) == -1)
 		die(EXIT_FAILURE, "Error: Could not read link " + src);
 
+	target[size] = '\0';
 	logMessage("LN " + dst + " -> " + target, BLUE);
 
 	if (symlink(target, dst.c_str()) == -1)
