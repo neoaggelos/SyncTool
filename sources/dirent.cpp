@@ -125,7 +125,7 @@ void removeDirectory(string dir)
 		if (string(ent->d_name) == "." || string(ent->d_name) == "..")
 			continue;
 
-		path = dir + '/' + ent->d_name;
+		string path = dir + '/' + ent->d_name;
 
 		if (isDirectory(path))
 			removeDirectory(path);
@@ -159,8 +159,8 @@ void copyAllFiles(string src, string dst)
 		if (string(ent->d_name) == "." || string(ent->d_name) == "..")
 			continue;
 
-		srcPath = src + '/' + ent->d_name;
-		dstPath = dst + '/' + ent->d_name;
+		string srcPath = src + '/' + ent->d_name;
+		string dstPath = dst + '/' + ent->d_name;
 
 		if (isDirectory(srcPath))
 			copyAllFiles(srcPath, dstPath);
@@ -183,8 +183,8 @@ void copyNewAndUpdatedFiles(string src, string dst)
 		if (string(ent->d_name) == "." || string(ent->d_name) == "..")
 			continue;
 
-		srcPath = src + '/' + ent->d_name;
-		dstPath = dst + '/' + ent->d_name;
+		string srcPath = src + '/' + ent->d_name;
+		string dstPath = dst + '/' + ent->d_name;
 
 		if (isDirectory(srcPath) && !isDirectory(dstPath))
 			logMessage("Warning: " + srcPath + " is a directory, but " + dstPath + " is not.");
@@ -211,8 +211,8 @@ void createDirectoryTree(const char* src, const char* dst)
 		if (string(ent->d_name) == "." || string(ent->d_name) == "..")
 			continue;
 
-		srcPath = src + '/' + ent->d_name;
-		dstPath = dst + '/' + ent->d_name;
+		string srcPath = src + '/' + ent->d_name;
+		string dstPath = dst + '/' + ent->d_name;
 
 		if (isDirectory(srcPath) && !isDirectory(dstPath))
 		{
@@ -252,8 +252,8 @@ void removeMissing(string src, string dst)
 		if (string(ent->d_name) == "." || string(ent->d_name) == "..")
 			continue;
 
-		srcPath = src + '/' + ent->d_name;
-		dstPath = dst + '/' + ent->d_name;
+		string srcPath = src + '/' + ent->d_name;
+		string dstPath = dst + '/' + ent->d_name;
 
 		if (isDirectory(dstPath) && !isDirectory(srcPath))
 			removeDirectory(dstPath);
