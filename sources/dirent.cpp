@@ -52,8 +52,10 @@ void copyFile(string src, string dst)
 	ifstream fin(src.c_str(), ios::binary);
 	ofstream fout(dst.c_str(), ios::binary);
 
-	if (!(fin.is_open() && fout.is_open() && (fout << fin.rdbuf())))
+	if (!(fin.is_open() && fout.is_open()))
 		die(EXIT_FAILURE, "Error: Could not copy " + src);
+
+	fout << fin.rdbuf();
 
 	fin.close();
 	fout.close();
