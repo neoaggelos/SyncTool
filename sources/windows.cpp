@@ -2,18 +2,6 @@
 #include <windows.h>
 #include <sys/utime.h>
 
-bool isFile(string path)
-{
-	DWORD dw = GetFileAttributesA(path.c_str());
-	return (dw != INVALID_FILE_ATTRIBUTES) && !(dw & FILE_ATTRIBUTE_DIRECTORY);
-}
-
-bool isDirectory(string path)
-{
-	DWORD dw = GetFileAttributesA(path.c_str());
-	return (dw != INVALID_FILE_ATTRIBUTES) && (dw & FILE_ATTRIBUTE_DIRECTORY);
-}
-
 /* Write with colorized output */
 void setColor(string color)
 {
@@ -32,6 +20,16 @@ void setColor(string color)
 }
 
 /* File operations */
+void createDirectory(string dir)
+{
+	if (isDirectory(dir))
+		return;
+
+	logMessage("MK " + dir, GREEN);
+	if (!CreateDirectoryA(dir.c_str(), NULL))
+		die(EXIT_FAILURE, "Error: Could not create directory " + dir);
+}
+
 void removeFile(string file)
 {
 	if (!isFile(file))
@@ -55,7 +53,7 @@ void copyFile(string src, string dst)
 
 	struct stat st;
 
-	if (stat(src.c_str(), &st) != -1)
+	if (lstat(src.c_str(), &st) != -1)
 	{
 		struct utimbuf buf;
 
@@ -63,6 +61,12 @@ void copyFile(string src, string dst)
 		buf.modtime = st.st_mtime;
 		utime(dst.c_str(), &buf);
 	}
+}
+
+void removeGeneric(string path)
+{
+	logMessage("RM " + path, RED);
+	remove(path.c_str());
 }
 
 void removeDirectory(string dir)
@@ -88,10 +92,7 @@ void removeDirectory(string dir)
 			else if (isFile(path))
 				removeFile(path);
 			else
-			{
-				logMessage("RM " + path, RED);
-				remove(path.c_str());
-			}
+				removeGeneric(path);
 		}
 		done = !FindNextFileA(h, &d);
 	}
@@ -133,7 +134,15 @@ void copyAllFiles(string src, string dst)
 			string srcPath = src + '\\' + d.cFileName;
 			string dstPath = dst + '\\' + d.cFileName;
 
-			if (isDirectory(srcPath))
+			if (isDirectory(srcPath) && !isDirectory(dstPath))
+			{
+				if (isFile(dstPath))
+					removeFile(dstPath);
+
+				createDirectory(dstPath);
+				copyAllFiles(srcPath, dstPath);
+			}
+			else if (isDirectory(srcPath) && isDirectory(dstPath))
 				copyAllFiles(srcPath, dstPath);
 			else if (isFile(srcPath))
 				copyFile(srcPath, dstPath);
@@ -161,61 +170,22 @@ void copyNewAndUpdatedFiles(string src, string dst)
 			string srcPath = src + '\\' + d.cFileName;
 			string dstPath = dst + '\\' + d.cFileName;
 
-			if (isDirectory(srcPath) && isFile(dstPath))
-				logMessage("Warning: " + srcPath + " is a directory, but " + dstPath + " is a file.");
-			else if (isFile(srcPath) && isDirectory(dstPath))
-				logMessage("Warning: " + srcPath + " is a file, but " + dstPath + " is a directory.");
-			else if (isDirectory(srcPath))
-				copyNewAndUpdatedFiles(srcPath, dstPath);
-			else if (isFile(srcPath) && isNewer(srcPath, dstPath))
-				copyFile(srcPath, dstPath);
-		}
-
-		done = !FindNextFileA(h, &d);
-	}
-
-	FindClose(h);
-}
-
-void createDirectoryTree(string src, string dst)
-{
-	HANDLE h = INVALID_HANDLE_VALUE;
-	WIN32_FIND_DATAA d;
-
-	string regex = src + "\\*";
-	h = FindFirstFileA(regex.c_str(), &d);
-
-	bool done = (h == INVALID_HANDLE_VALUE);
-	while (!done)
-	{
-		if (string(d.cFileName) != "." && string(d.cFileName) != "..")
-		{
-			string srcPath = src + '\\' + d.cFileName;
-			string dstPath = dst + '\\' + d.cFileName;
-
 			if (isDirectory(srcPath) && !isDirectory(dstPath))
 			{
 				if (isFile(dstPath))
-					removeFile(dstPath);
-
-				logMessage("MK " + dstPath, GREEN);
-				if (!CreateDirectoryA(dstPath.c_str(), NULL))
-					die(EXIT_FAILURE, "Error: Could not create " + dstPath);
-
-				struct stat st;
-
-				if (stat(srcPath.c_str(), &st)!=-1)
+					logMessage("Warning: " + srcPath + " is a directory, but " + dstPath + " is not.");
+				else
 				{
-					struct utimbuf buf;
-					buf.actime = st.st_atime;
-					buf.modtime = st.st_mtime;
-
-					utime(dstPath.c_str(), &buf);
+					createDirectory(dstPath);
+					copyNewAndUpdatedFiles(srcPath, dstPath);
 				}
 			}
-
-			if (isDirectory(srcPath) && isDirectory(dstPath))
-				createDirectoryTree(srcPath, dstPath);
+			else if (isDirectory(srcPath) && isDirectory(dstPath))
+				copyNewAndUpdatedFiles(srcPath, dstPath);
+			else if (isFile(srcPath) && isDirectory(dstPath))
+				logMessage("Warning: " + srcPath + " is not a directory, but " + dstPath + " is.");
+			else if (isFile(srcPath) && (!isFile(dstPath) || isNewer(srcPath, dstPath)))
+				copyFile(srcPath, dstPath);
 		}
 
 		done = !FindNextFileA(h, &d);

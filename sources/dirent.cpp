@@ -3,18 +3,6 @@
 #include <unistd.h>
 #include <utime.h>
 
-bool isFile(string path)
-{
-	struct stat st;
-	return (lstat(path.c_str(), &st) != -1) && TYPE(st) == S_IFREG;
-}
-
-bool isDirectory(string path)
-{
-	struct stat st;
-	return (lstat(path.c_str(), &st) != -1) && TYPE(st) == S_IFDIR;
-}
-
 bool isLink(string path)
 {
 	struct stat st;
@@ -29,9 +17,19 @@ void setColor(string color)
 }
 
 /* File operations */
+void createDirectory(string dir)
+{
+	if (isDirectory(dir))
+		return;
+
+	logMessage("MK " + dir, GREEN);
+	if (mkdir(dir.c_str(), 0775) == -1)
+		die(EXIT_FAILURE, "Error: Could not create directory " + dir);
+}
+
 void removeFile(string file)
 {
-	if (isDirectory(file))
+	if (!isFile(file) || !isLink(file))
 		return;
 
 	logMessage("RM " + file, RED);
@@ -44,7 +42,7 @@ void copyFile(string src, string dst)
 	if (!filesDiffer(src, dst))
 		return;
 
-	if (isFile(dst))
+	if (isFile(dst) || isLink(dst))
 		removeFile(dst);
 
 	logMessage("CP " + src + " -> " + dst, BLUE);
@@ -84,7 +82,8 @@ void copyLink(string src, string dst)
 	int size = 1024;
 	struct stat st;
 
-	removeFile(dst);
+	if (isFile(dst) || isLink(dst))
+		removeFile(dst);
 	
 	if ((r = lstat(src.c_str(), &st)) != -1)
 	{
@@ -92,6 +91,7 @@ void copyLink(string src, string dst)
 	}
 
 	target = new char[size+1];
+	memset(target, 0, size + 1);
 
 	if (readlink(src.c_str(), target, size) == -1)
 		die(EXIT_FAILURE, "Error: Could not read link " + src);
@@ -165,7 +165,15 @@ void copyAllFiles(string src, string dst)
 		string srcPath = src + '/' + ent->d_name;
 		string dstPath = dst + '/' + ent->d_name;
 
-		if (isDirectory(srcPath))
+		if (isDirectory(srcPath) && !isDirectory(dstPath))
+		{
+			if (isFile(dstPath) || isLink(dstPath))
+				removeFile(dstPath);
+
+			createDirectory(dstPath);
+			copyAllFiles(srcPath, dstPath);
+		}
+		else if (isDirectory(srcPath) && isDirectory(dstPath)
 			copyAllFiles(srcPath, dstPath);
 		else if (isFile(srcPath))
 			copyFile(srcPath, dstPath);
@@ -190,56 +198,23 @@ void copyNewAndUpdatedFiles(string src, string dst)
 		string dstPath = dst + '/' + ent->d_name;
 
 		if (isDirectory(srcPath) && !isDirectory(dstPath))
-			logMessage("Warning: " + srcPath + " is a directory, but " + dstPath + " is not.");
-		else if (!isDirectory(srcPath) && isDirectory(dstPath))
-			logMessage("Warning: " + srcPath + " is not a directory, but " + dstPath + " is.");
-		else if (isDirectory(srcPath))
-			copyNewAndUpdatedFiles(srcPath, dstPath);
-		else if (isFile(srcPath) && isNewer(srcPath, dstPath))
-			copyFile(srcPath, dstPath);
-		else if (isLink(srcPath))
-			copyLink(srcPath, dstPath);
-	}
-
-	closedir(d);
-}
-
-void createDirectoryTree(string src, string dst)
-{
-	DIR *d = opendir(src.c_str());
-	struct dirent *ent = NULL;
-
-	while ((ent = readdir(d)))
-	{
-		if (string(ent->d_name) == "." || string(ent->d_name) == "..")
-			continue;
-
-		string srcPath = src + '/' + ent->d_name;
-		string dstPath = dst + '/' + ent->d_name;
-
-		if (isDirectory(srcPath) && !isDirectory(dstPath))
 		{
 			if (isFile(dstPath) || isLink(dstPath))
-				removeFile(dstPath);
-
-			logMessage("MK " + dstPath);
-			if (mkdir(dstPath.c_str(), 0775) == -1)
-				die(EXIT_FAILURE, "Could not create " + dstPath);
-
-			struct stat st;
-
-			if (stat(srcPath.c_str(), &st) != -1)
+				logMessage("Warning: " + srcPath + " is a directory, but " + dstPath + " is not.");
+			else
 			{
-				struct utimbuf buf;
-				buf.actime = st.st_atime;
-				buf.modtime = st.st_mtime;
-
-				utime(dstPath.c_str(), &buf);
+				createDirectory(dstPath);
+				copyNewAndUpdatedFiles(srcPath, dstPath);
 			}
 		}
-
-		if (isDirectory(srcPath) && isDirectory(dstPath))
-			createDirectoryTree(srcPath, dstPath);
+		else if (isDirectory(srcPath) && isDirectory(dstPath))
+			copyNewAndUpdatedFiles(srcPath, dstPath);
+		else if ((isFile(srcPath) || isLink(srcPath)) && isDirectory(dstPath))
+			logMessage("Warning: " + srcPath + " is not a directory, but " + dstPath + " is.");
+		else if (isFile(srcPath) && (!isFile(dstPath) || isNewer(srcPath, dstPath)))
+			copyFile(srcPath, dstPath);
+		else if (isLink(srcPath) && (!isLink(dstPath) || isNewer(srcPath, dstPath)))
+			copyLink(srcPath, dstPath);
 	}
 
 	closedir(d);

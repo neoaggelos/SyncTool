@@ -33,12 +33,23 @@ void printHelp()
 	die(EXIT_SUCCESS);
 }
 
+bool isFile(string path)
+{
+	struct stat st;
+	return (lstat(path.c_str(), &st) != -1) && TYPE(st) == S_IFREG;
+}
+
+bool isDirectory(string path)
+{
+	struct stat st;
+	return (lstat(path.c_str(), &st) != -1) && TYPE(st) == S_IFDIR;
+}
 
 bool isNewer(string newFile, string oldFile)
 {
 	struct stat n, o;
-	int rn = stat(newFile.c_str(), &n);
-	int ro = stat(oldFile.c_str(), &o);
+	int rn = lstat(newFile.c_str(), &n);
+	int ro = lstat(oldFile.c_str(), &o);
 
 	return (rn != -1) && (ro != -1) && (n.st_mtime > o.st_mtime);
 }

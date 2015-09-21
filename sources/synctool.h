@@ -46,6 +46,7 @@ bool filesDiffer(string A, string B);
 
 /* File operations */
 void copyFile(string src, string dst);
+void createDirectory(string dir);
 void removeFile(string file);
 void removeDirectory(string dir);
 
@@ -53,7 +54,6 @@ void removeDirectory(string dir);
 void assertCanOpenDirectory(string dir);
 void copyAllFiles(string src, string dst);
 void copyNewAndUpdatedFiles(string src, string dst);
-void createDirectoryTree(string src, string dst);
 void removeMissing(string src, string dst);
 
 /* Super function */
@@ -63,5 +63,10 @@ void doSync(string src, string dst);
 extern int gUseColors;
 extern int gFastMode;
 extern string gSyncMode;
+
+/* lstat() fix for Visual Studio */
+#ifdef _MSC_VER
+#	define lstat stat
+#endif
 
 #endif /* _synctool_h */
