@@ -29,7 +29,7 @@ void createDirectory(string dir)
 
 void removeFile(string file)
 {
-	if (!isFile(file) || !isLink(file))
+	if (!isFile(file) && !isLink(file))
 		return;
 
 	logMessage("RM " + file, RED);
