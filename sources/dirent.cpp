@@ -173,7 +173,7 @@ void copyAllFiles(string src, string dst)
 			createDirectory(dstPath);
 			copyAllFiles(srcPath, dstPath);
 		}
-		else if (isDirectory(srcPath) && isDirectory(dstPath)
+		else if (isDirectory(srcPath) && isDirectory(dstPath))
 			copyAllFiles(srcPath, dstPath);
 		else if (isFile(srcPath))
 			copyFile(srcPath, dstPath);
