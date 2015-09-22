@@ -60,8 +60,8 @@ void removeMissing(string src, string dst);
 void doSync(string src, string dst);
 
 /* globals that are set from command line options */
-extern int gUseColors;
-extern int gFastMode;
+extern bool gUseColors;
+extern bool gFastMode;
 extern string gSyncMode;
 
 /* lstat() fix for Visual Studio */

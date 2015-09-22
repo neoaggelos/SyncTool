@@ -61,7 +61,7 @@ bool filesDiffer(string A, string B)
 
 	struct stat stA, stB;
 
-	if (stat(A.c_str(), &stA) == -1 || stat(B.c_str(), &stB) == -1)
+	if (lstat(A.c_str(), &stA) == -1 || lstat(B.c_str(), &stB) == -1)
 		return true;
 
 	if (gFastMode)

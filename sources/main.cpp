@@ -1,12 +1,13 @@
 #include "synctool.h"
 
 /* Command line options */
-int gUseColors = 1;
-int gFastMode = 0;
-string gSyncMode = "mirror";
+bool gUseColors = true;
+bool gFastMode = false;
+string gSyncMode = "";
 
 int main(int argc, char** argv)
 {
+	bool interactiveMode = false;
 	string src = "", dst = "";
 
 	/* Handle command-line arguments */
@@ -15,13 +16,17 @@ int main(int argc, char** argv)
 		string arg(argv[i]);
 
 		if (arg == "-c" || arg == "--color")
-			gUseColors = 1;
+			gUseColors = true;
 		else if (arg == "--no-color")
-			gUseColors = 0;
+			gUseColors = false;
 		else if (arg == "-f" || arg == "--fast")
-			gFastMode = 1;
+			gFastMode = true;
 		else if (arg == "--no-fast")
-			gFastMode = 0;
+			gFastMode = false;
+		else if (arg == "-i" || arg == "--interactive")
+			interactiveMode = true;
+		else if (arg == "--no-interactive")
+			interactiveMode = false;
 		else if (arg == "-m" || arg == "--mirror")
 			gSyncMode = "mirror";
 		else if (arg == "-a" || arg == "--append")
@@ -32,6 +37,31 @@ int main(int argc, char** argv)
 			src = arg;
         else if (dst == "")
             dst = arg;
+	}
+
+	if (interactiveMode)
+	{
+		while (src == "" || !isDirectory(src))
+		{
+			logMessage("Enter source directory: ");
+			cin >> src;
+		}
+
+		while (dst == "" || !isDirectory(dst))
+		{
+			logMessage("Enter destination directory: ");
+			cin >> dst;
+		}
+
+		while (gSyncMode != "mirror" && gSyncMode != "append")
+		{
+			logMessage("Choose sync mode: [mirror/append]: ");
+			cin >> gSyncMode;
+		}
+	}
+	else if (gSyncMode == "")
+	{
+		gSyncMode = "mirror";
 	}
 
 	if (src == "" || dst == "")

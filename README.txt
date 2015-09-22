@@ -43,6 +43,10 @@ Options:
                  deleted. Furthermore, only new and updated files from [source]
                  are synced to [dest].
 
+ -i, --interactive : If [source], [dest] and sync mode are not passed through
+                     the command line arguments, ask the user for input.
+  --no-interactive : Disable previous option.
+
  -c,   --color : Colorize program output
     --no-color : Disable previous option
 
