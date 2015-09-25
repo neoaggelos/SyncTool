@@ -64,9 +64,4 @@ extern bool gUseColors;
 extern bool gFastMode;
 extern string gSyncMode;
 
-/* lstat() fix for Visual Studio */
-#ifdef _MSC_VER
-#	define lstat stat
-#endif
-
 #endif /* _synctool_h */
