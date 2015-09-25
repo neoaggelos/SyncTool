@@ -33,68 +33,19 @@ void printHelp()
 	die(EXIT_SUCCESS);
 }
 
-bool isFile(string path)
+/* Write with colorized output */
+void setColor(string color)
 {
-	struct stat st;
-	return (stat(path.c_str(), &st) != -1) && TYPE(st) == S_IFREG;
-}
-
-bool isDirectory(string path)
-{
-	struct stat st;
-	return (stat(path.c_str(), &st) != -1) && TYPE(st) == S_IFDIR;
-}
-
-bool isNewer(string newFile, string oldFile)
-{
-	struct stat n, o;
-	int rn = stat(newFile.c_str(), &n);
-	int ro = stat(oldFile.c_str(), &o);
-
-	return (rn != -1) && (ro != -1) && (n.st_mtime > o.st_mtime);
-}
-
-bool filesDiffer(string A, string B)
-{
-	if (!isFile(A) || !isFile(B))
-		return true;
-
-	struct stat stA, stB;
-
-	if (stat(A.c_str(), &stA) == -1 || stat(B.c_str(), &stB) == -1)
-		return true;
-
-	if (gFastMode)
+	if (gUseColors)
 	{
-		return (stA.st_size != stB.st_size);
-	}
-	else
-	{
-		if (stA.st_size != stB.st_size)
-			return true;
-
-		FILE *fa, *fb;
-
-		if (((fa = fopen(A.c_str(), "rb")) == NULL) || ((fb = fopen(B.c_str(), "rb")) == NULL))
-			return true;
-
-		char a[BUFFER_SIZE], b[BUFFER_SIZE];
-		int nReadA, nReadB;
-
-		while (((nReadA = fread(a, sizeof(char), BUFFER_SIZE, fa)) != 0) && ((nReadB = fread(b, sizeof(char), BUFFER_SIZE, fb)) != 0))
-		{
-			if ((nReadA != nReadB) || memcmp(a, b, nReadA) != 0)
-			{
-				fclose(fa);
-				fclose(fb);
-
-				return true;
-			}
-		}
-
-		fclose(fa);
-		fclose(fb);
-
-		return false;
+		HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+		if (color == RED)
+			SetConsoleTextAttribute(h, WRED);
+		else if (color == BLUE)
+			SetConsoleTextAttribute(h, WBLUE);
+		else if (color == GREEN)
+			SetConsoleTextAttribute(h, WGREEN);
+		else if (color == WHITE)
+			SetConsoleTextAttribute(h, WWHITE);
 	}
 }

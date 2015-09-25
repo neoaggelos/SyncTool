@@ -11,6 +11,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <dirent.h>
+#include <unistd.h>
+
 using namespace std;
 
 /* Synctool version */
@@ -63,10 +66,5 @@ void doSync(string src, string dst);
 extern bool gUseColors;
 extern bool gFastMode;
 extern string gSyncMode;
-
-/* lstat() fix for Visual Studio */
-#ifdef _MSC_VER
-#	define lstat stat
-#endif
 
 #endif /* _synctool_h */
