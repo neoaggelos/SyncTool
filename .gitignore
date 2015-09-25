@@ -1,0 +1,5 @@
+build
+synctool
+**/*.exe
+**/*.obj
+**/*.o
