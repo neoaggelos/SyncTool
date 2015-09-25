@@ -36,12 +36,8 @@ Open your favourite IDE (e.g. Dev-Cpp, Code::Blocks, Visual Studio etc) and
 create a new empty C++ project (name it 'SyncTool').
 
 Add the following files in the project:
-	sources/synctool.h
-	sources/main.cpp
-	sources/synctool.cpp
-	sources/util.cpp 
-	sources/windows.cpp     -- only for Windows
-	sources/dirent.cpp      -- only for Linux or Mac OS X
+	sources/windows/*               -- For Windows
+	sources/linux/*                 -- For everything else
 
 And that's all. Press 'Build' to compile SyncTool.
 

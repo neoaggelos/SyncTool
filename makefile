@@ -4,9 +4,8 @@ CXXFLAGS+=
 PREFIX=/usr/local
 
 # Do not change anything below this line
-SOURCES=sources/util.cpp sources/main.cpp sources/synctool.cpp
-SOURCES_WIN=$(SOURCES) sources/windows.cpp
-SOURCES_LNX=$(SOURCES) sources/dirent.cpp
+SOURCES_WIN=sources/windows/*.cpp
+SOURCES_LNX=sources/linux/*.cpp
 
 all: synctool
 
@@ -22,4 +21,4 @@ install: synctool
 	install -c synctool $(PREFIX)/bin/synctool
 
 clean:
-	rm -rf synctool build
+	rm -rf synctool synctool.exe build

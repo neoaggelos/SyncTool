@@ -11,14 +11,12 @@ workspace "SyncTool"
 		language "C++"
 		targetname "synctool"
 		flags "StaticRuntime"
-		files { "sources/*.cpp", "sources/*.h", "**.txt", "premake5.lua" }
-		removefiles "CMakeLists.txt"
-
-		filter "not system:windows"
-			removefiles "sources/windows.cpp"
 
 		filter "system:windows"
-			removefiles "sources/dirent.cpp"
+			files "sources/windows/*"
+
+		filter "not system:windows"
+			files "sources/linux/*"
 
 		filter "configurations:Debug"
 			defines "_DEBUG"
