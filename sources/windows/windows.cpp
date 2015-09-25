@@ -1,6 +1,5 @@
 #include "synctool.h"
 #include <windows.h>
-#include <sys/utime.h>
 
 /* Write with colorized output */
 void setColor(string color)
@@ -50,17 +49,6 @@ void copyFile(string src, string dst)
 	logMessage("CP " + src + " -> " + dst, BLUE);
 	if (!CopyFileA(src.c_str(), dst.c_str(), FALSE))
 		die(EXIT_FAILURE, "Error: Could not copy " + src);
-
-	struct stat st;
-
-	if (lstat(src.c_str(), &st) != -1)
-	{
-		struct utimbuf buf;
-
-		buf.actime = st.st_atime;
-		buf.modtime = st.st_mtime;
-		utime(dst.c_str(), &buf);
-	}
 }
 
 void removeGeneric(string path)

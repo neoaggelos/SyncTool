@@ -1,7 +1,6 @@
 #include "synctool.h"
 #include <dirent.h>
 #include <unistd.h>
-#include <utime.h>
 
 bool isLink(string path)
 {
@@ -60,15 +59,8 @@ void copyFile(string src, string dst)
 
 	struct stat st;
 
-	if (stat(src.c_str(), &st) != -1)
+	if (lstat(src.c_str(), &st) != -1)
 	{
-		struct utimbuf buf;
-
-		buf.actime = st.st_atime;
-		buf.modtime = st.st_mtime;
-
-		utime(dst.c_str(), &buf);
-
 		/* also copy file permissions */
 		chmod(dst.c_str(), st.st_mode);
 	}
@@ -103,16 +95,6 @@ void copyLink(string src, string dst)
 		die(EXIT_FAILURE, "Error: Could not create link " + dst);
 
 	delete target;
-
-	if (r != -1)
-	{
-		struct utimbuf buf;
-
-		buf.actime = st.st_atime;
-		buf.modtime = st.st_mtime;
-
-		utime(dst.c_str(), &buf);
-	}
 }
 
 void removeDirectory(string dir)
@@ -241,7 +223,6 @@ void removeMissing(string src, string dst)
 			removeFile(dstPath);
 		else if (isDirectory(dstPath) && isDirectory(srcPath))
 			removeMissing(srcPath, dstPath);
-
 	}
 
 	closedir(d);
