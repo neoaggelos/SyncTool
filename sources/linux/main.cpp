@@ -5,49 +5,66 @@ bool gUseColors = true;
 bool gFastMode = false;
 string gSyncMode = "";
 
+template <typename T>
+bool handle_arg(string arg, string name, T& var, T yes)
+{
+	if (arg == string(string("--") + name) || arg == string(string("-") + name))
+	{
+		var = yes; return true;
+	}
+	return false;
+}
+
+template <typename T>
+bool handle_arg(string arg, string name, T& var, T yes, T no)
+{
+	if (arg == string(string("--") + name) || arg == string(string("-") + name) || arg == string(string("-") + name.substr(0,1)))
+	{
+		var = yes; return true;
+	}
+	else if (arg == string(string("--no-") + name) || arg == string(string("-no-") + name))
+	{
+		var = no; return true;
+	}
+	return false;
+}
+
 int main(int argc, char** argv)
 {
-	bool interactiveMode = false;
+	bool interactive = false;
 	string src = "", dst = "";
 
 	/* Handle command-line arguments */
 	for (int i = 1; i < argc; i++)
 	{
-		string arg(argv[i]);
+		bool isArg = false;
 
-		if (arg == "-c" || arg == "--color")
-			gUseColors = true;
-		else if (arg == "--no-color")
-			gUseColors = false;
-		else if (arg == "-f" || arg == "--fast")
-			gFastMode = true;
-		else if (arg == "--no-fast")
-			gFastMode = false;
-		else if (arg == "-i" || arg == "--interactive")
-			interactiveMode = true;
-		else if (arg == "--no-interactive")
-			interactiveMode = false;
-		else if (arg == "-m" || arg == "--mirror")
-			gSyncMode = "mirror";
-		else if (arg == "-a" || arg == "--append")
-			gSyncMode = "append";
-		else if (!isDirectory(arg) || (src != "" && dst != ""))
-			logMessage("Warning: Unknown option " + arg);
-		else if (src == "")
-			src = arg;
-        else if (dst == "")
-            dst = arg;
+		isArg |= handle_arg(argv[i], "color",       gUseColors,  true,     false);
+		isArg |= handle_arg(argv[i], "fast",        gFastMode,   true,     false);
+		isArg |= handle_arg(argv[i], "interactive", interactive, true,     false);
+
+		isArg |= handle_arg<string>(argv[i], "append", gSyncMode, "append");
+		isArg |= handle_arg<string>(argv[i], "mirror", gSyncMode, "mirror");
+
+		if (!isArg && ((!isDirectory(argv[i])) || ((src + dst) != "")))
+			logMessage("Warning: Unknown option: " + string(argv[i]));
+		else if (!isArg && src == "")
+			src = argv[i];
+		else if (!isArg && dst == "")
+			dst = argv[i];
 	}
 
-	if (interactiveMode)
+	if (interactive)
 	{
-		while (src == "" || !isDirectory(src))
+		logMessage("Entering interactive mode...");
+
+		if (src == "")
 		{
 			logMessage("Enter source directory: ");
 			cin >> src;
 		}
 
-		while (dst == "" || !isDirectory(dst))
+		if (dst == "")
 		{
 			logMessage("Enter destination directory: ");
 			cin >> dst;
@@ -55,7 +72,7 @@ int main(int argc, char** argv)
 
 		while (gSyncMode != "mirror" && gSyncMode != "append")
 		{
-			logMessage("Choose sync mode: [mirror/append]: ");
+			logMessage("Choose sync mode [mirror/append]: ");
 			cin >> gSyncMode;
 		}
 	}
