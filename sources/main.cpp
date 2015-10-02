@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 		isArg |= handle_arg<string>(argv[i], "append", gSyncMode, "append");
 		isArg |= handle_arg<string>(argv[i], "mirror", gSyncMode, "mirror");
 
-		if (!isArg && ((!isDirectory(argv[i])) || ((src + dst) != "")))
+		if (!isArg && ((!isDirectory(argv[i])) || ((src != "") && (dst != "")))
 			logMessage("Warning: Unknown option: " + string(argv[i]));
 		else if (!isArg && src == "")
 			src = argv[i];
