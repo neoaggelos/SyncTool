@@ -4,7 +4,7 @@ System Requirements
 
 * A sane and working C++ compiler (g++, Visual Studio, Mingw, Xcode, ...)
 
-Download latest source code from[1], or use git:
+Download latest source code from [1], or use git:
 
 	# git clone http://github.com/neoaggelos/synctool --depth 1
 
@@ -36,8 +36,16 @@ Open your favourite IDE (e.g. Dev-Cpp, Code::Blocks, Visual Studio etc) and
 create a new empty C++ project (name it 'SyncTool').
 
 Add the following files in the project:
-	sources/windows/*               -- For Windows
-	sources/linux/*                 -- For everything else
+	sources/main.cpp
+	sources/util.cpp
+	sources/synctool.cpp
+	sources/synctool.h
+
+If you are building on Windows, also add:
+	sources/windows.cpp
+	
+If you are building on Linux or Mac OS X, also add:
+	sources/dirent.cpp
 
 And that's all. Press 'Build' to compile SyncTool.
 

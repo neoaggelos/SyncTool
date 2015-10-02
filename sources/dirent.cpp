@@ -1,5 +1,15 @@
 #include "synctool.h"
 
+#include <dirent.h>
+#include <unistd.h>
+
+/* Write with colorized output */
+void setColor(string color)
+{
+	if (gUseColors)
+		cout << color;
+}
+
 bool isFile(string path)
 {
 	struct stat st;

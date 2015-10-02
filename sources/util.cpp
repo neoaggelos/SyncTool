@@ -32,20 +32,3 @@ void printHelp()
 	);
 	die(EXIT_SUCCESS);
 }
-
-/* Write with colorized output */
-void setColor(string color)
-{
-	if (gUseColors)
-	{
-		HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
-		if (color == RED)
-			SetConsoleTextAttribute(h, WRED);
-		else if (color == BLUE)
-			SetConsoleTextAttribute(h, WBLUE);
-		else if (color == GREEN)
-			SetConsoleTextAttribute(h, WGREEN);
-		else if (color == WHITE)
-			SetConsoleTextAttribute(h, WWHITE);
-	}
-}

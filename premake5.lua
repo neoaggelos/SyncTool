@@ -11,12 +11,13 @@ workspace "SyncTool"
 		language "C++"
 		targetname "synctool"
 		flags "StaticRuntime"
+		files { "sources/*.cpp" , "sources/*.h" }
 
 		filter "system:windows"
-			files "sources/windows/*"
+			removefiles "sources/dirent.cpp"
 
 		filter "not system:windows"
-			files "sources/linux/*"
+			removefiles "sources/windows.cpp"
 
 		filter "configurations:Debug"
 			defines "_DEBUG"
