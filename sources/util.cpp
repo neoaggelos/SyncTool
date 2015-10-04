@@ -27,6 +27,7 @@ void printHelp()
 		"     --no-fast  : Disable fast mode\n"
 		"  -c,  --color  : Colorize program output\n"
 		"    --no-color  : Disable colorized output\n"
+		"  -v, --verbose : Output extra progress messages\n"
 		"  -m, --mirror  : Use mirror sync mode\n"
 		"  -a, --append  : Use append sync mode\n"
 	);

@@ -62,6 +62,7 @@ void doSync(string src, string dst);
 /* globals that are set from command line options */
 extern bool gUseColors;
 extern bool gFastMode;
+extern bool gVerbose;
 extern string gSyncMode;
 
 #endif /* _synctool_h */

@@ -3,6 +3,7 @@
 /* Command line options */
 bool gUseColors = true;
 bool gFastMode = false;
+bool gVerbose = false;
 string gSyncMode = "";
 
 template <typename T>
@@ -39,14 +40,15 @@ int main(int argc, char** argv)
 	{
 		bool isArg = false;
 
-		isArg |= handle_arg(argv[i], "color",       gUseColors,  true,     false);
-		isArg |= handle_arg(argv[i], "fast",        gFastMode,   true,     false);
-		isArg |= handle_arg(argv[i], "interactive", interactive, true,     false);
+		isArg |= handle_arg(argv[i], "color",       gUseColors,  true, false);
+		isArg |= handle_arg(argv[i], "fast",        gFastMode,   true, false);
+		isArg |= handle_arg(argv[i], "verbose",     gVerbose,    true, false);
+		isArg |= handle_arg(argv[i], "interactive", interactive, true, false);
 
 		isArg |= handle_arg<string>(argv[i], "append", gSyncMode, "append");
 		isArg |= handle_arg<string>(argv[i], "mirror", gSyncMode, "mirror");
 
-		if (!isArg && ((!isDirectory(argv[i])) || ((src != "") && (dst != "")))
+		if (!isArg && ((!isDirectory(argv[i])) || ((src != "") && (dst != ""))))
 			logMessage("Warning: Unknown option: " + string(argv[i]));
 		else if (!isArg && src == "")
 			src = argv[i];

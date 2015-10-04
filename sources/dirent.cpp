@@ -39,6 +39,9 @@ bool isNewer(string newFile, string oldFile)
 
 bool filesDiffer(string A, string B)
 {
+	if (gVerbose)
+		logMessage("Comparing " + A + " with " + B);
+
 	if (!isFile(A) || !isFile(B))
 		return true;
 

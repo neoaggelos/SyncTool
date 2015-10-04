@@ -37,7 +37,7 @@ Options:
 
  -m,      --mirror : Run in mirror mode. SyncTool will delete all files from
                      [dest] not present in [source] and copy all files from
-		     [source] to [dest], overwriting any files in [dest] if
+		                 [source] to [dest], overwriting any files in [dest] if
                      needed.
 
  -a,      --append : Run in append mode. In this mode, no files from [dest] will
@@ -56,6 +56,9 @@ Options:
                      not be desired to set this option when syncing critical
                      text files.
          --no-fast : Disable previous option.
+
+ -v,     --verbose : Output extra debugging messages in the console.
+      --no-verbose : Disable previous option.
 
 ================================================================================
 Create a script
