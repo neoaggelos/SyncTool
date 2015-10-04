@@ -5,9 +5,9 @@ LIBS+=
 PREFIX=/usr/local
 
 # Do not change anything below this line
-SOURCES=sources/main.cpp sources/util.cpp sources/synctool.cpp
-SOURCES_WIN=sources/windows.cpp $(SOURCES)
-SOURCES_LNX=sources/dirent.cpp $(SOURCES)
+SOURCES=$(wildcard sources/*.cpp)
+SOURCES_WIN=$(filter-out sources/dirent.cpp, $(SOURCES))
+SOURCES_LNX=$(filter-out sources/windows.cpp, $(SOURCES))
 
 all: synctool
 
