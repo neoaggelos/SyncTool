@@ -9,7 +9,7 @@ string gSyncMode = "";
 template <typename T>
 bool handle_arg(string arg, string name, T& var, T yes)
 {
-	if (arg == string(string("--") + name) || arg == string(string("-") + name))
+	if (arg == string(string("--") + name) || arg == string(string("-") + name) || arg == string(string("-") + name.substr(0,1)))
 	{
 		var = yes; return true;
 	}
