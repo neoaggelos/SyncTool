@@ -58,8 +58,7 @@ copyLink_native(string src, string dst)
 		size = st.st_size;
 	}
 
-	target = new char[size + 1];
-	memset(target, 0, size + 1);
+	target = new char[size + 1]();
 
 	if (readlink(src.c_str(), target, size) == -1)
 		return false;
@@ -70,6 +69,7 @@ copyLink_native(string src, string dst)
 		return false;
 
 	delete target;
+	return true;
 }
 
 bool
