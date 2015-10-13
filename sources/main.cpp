@@ -6,8 +6,9 @@ bool gFastMode = false;
 bool gVerbose = false;
 string gSyncMode = "";
 
+/* Handles command line arguments*/
 template <typename T>
-bool handle_arg(string arg, string name, T& var, T yes)
+inline bool handle_arg(string arg, string name, T& var, T yes)
 {
 	if (arg == string(string("--") + name) || arg == string(string("-") + name) || arg == string(string("-") + name.substr(0,1)))
 	{
@@ -17,7 +18,7 @@ bool handle_arg(string arg, string name, T& var, T yes)
 }
 
 template <typename T>
-bool handle_arg(string arg, string name, T& var, T yes, T no)
+inline bool handle_arg(string arg, string name, T& var, T yes, T no)
 {
 	if (arg == string(string("--") + name) || arg == string(string("-") + name) || arg == string(string("-") + name.substr(0,1)))
 	{
@@ -28,6 +29,40 @@ bool handle_arg(string arg, string name, T& var, T yes, T no)
 		var = no; return true;
 	}
 	return false;
+}
+
+void logMessage(string msg, string color)
+{
+	setColor(color);
+	cout << msg << endl;
+}
+
+void die(int code, string msg)
+{
+	setColor(WHITE);
+	cout << endl << endl << msg << endl << endl
+		<< "Press enter to exit..." << endl;
+
+	(void)getchar();
+	exit(code);
+}
+
+void printHelp()
+{
+	logMessage(
+		"SyncTool version " VERSION "\n\n"
+		"Usage:\n"
+		"# synctool [source] [dest] <options>\n\n"
+		"Options:\n"
+		" -f : Use a faster (but less reliable) method of comparing files\n"
+		" -c : Colorize the program messages\n"
+		" -v : Write extra progress messages\n"
+		" -i : Run in interactive mode\n\n"
+		"Sync modes:\n"
+		" -m : Mirror mode (default)\n"
+		" -a : Append mode\n"
+	);
+	die(EXIT_FAILURE);
 }
 
 int main(int argc, char** argv)

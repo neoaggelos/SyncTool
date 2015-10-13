@@ -3,6 +3,7 @@ System Requirements
 ================================================================================
 
 * A sane and working C++ compiler (g++, Visual Studio, Mingw, Xcode, ...)
+* Nothing more
 
 Download latest source code from [1], or use git:
 
@@ -35,19 +36,7 @@ Build with any IDE (Windows, Linux and Mac OS X)
 Open your favourite IDE (e.g. Dev-Cpp, Code::Blocks, Visual Studio etc) and
 create a new empty C++ project (name it 'SyncTool').
 
-Add the following files in the project:
-	sources/main.cpp
-	sources/util.cpp
-	sources/synctool.cpp
-	sources/synctool.h
-
-If you are building on Windows, also add:
-	sources/windows.cpp
-	
-If you are building on Linux or Mac OS X, also add:
-	sources/dirent.cpp
-
-And that's all. Press 'Build' to compile SyncTool.
+Add all files from the 'sources' directory in the project, and build.
 
 ================================================================================
 Generate project files with premake (Windows, Linux and Mac OS X)
@@ -58,5 +47,20 @@ and Xcode. Use these project files to build SyncTool.
 
 [2]: http://premake.github.io	"premake5 home page"
 
+================================================================================
+For developers
+================================================================================
+
+If you are interested in browsing the source code, you might need to know what
+each source file does.
+
+ main.cpp        -- Contains the main() function and utility routines
+ synctool.cpp    -- Implements the 'high-level' sync tasks
+ lowlevel.cpp    -- Implements the 'low-level' tasks and routines
+ native_win.cpp  -- Native code for Windows systems
+ native_lnx.cpp  -- Native code for Linux and Mac OS X systems
+
+ synctool.h      -- Main header file
+ mydirent.h      -- Includes system <dirent.h> or defines our own if needed
 
 -- Aggelos Kolaitis

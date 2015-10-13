@@ -13,12 +13,6 @@ workspace "SyncTool"
 		flags "StaticRuntime"
 		files { "sources/*.cpp" , "sources/*.h" }
 
-		filter "system:windows"
-			removefiles "sources/dirent.cpp"
-
-		filter "not system:windows"
-			removefiles "sources/windows.cpp"
-
 		filter "configurations:Debug"
 			defines "_DEBUG"
 			flags "Symbols"

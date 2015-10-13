@@ -1,4 +1,4 @@
-SyncTool version 0.2
+SyncTool version 0.3
 Developed by Aggelos Kolaitis <neoaggelos@gmail.com>
 
 ================================================================================
@@ -37,7 +37,7 @@ Options:
 
  -m,      --mirror : Run in mirror mode. SyncTool will delete all files from
                      [dest] not present in [source] and copy all files from
-		                 [source] to [dest], overwriting any files in [dest] if
+                     [source] to [dest], overwriting any files in [dest] if
                      needed.
 
  -a,      --append : Run in append mode. In this mode, no files from [dest] will
@@ -76,7 +76,7 @@ files by running this script.
 Examples
 ================================================================================
 
-The following are examples of using SyncTool. Note that you might 
+The following are examples of using SyncTool.
 
-	# synctool.exe C:\users\neo\
-	# synctool.exe c:\users\neo\music d:\music --fast --color --mirror
+	# synctool.exe C:\\users\\user\\documents e:\\mybackup --append -v
+	# synctool.exe c:\\music d:\\music --fast --color --mirror

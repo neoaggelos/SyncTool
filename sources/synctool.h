@@ -14,7 +14,7 @@
 using namespace std;
 
 /* Synctool version */
-#define VERSION "0.2"
+#define VERSION "0.3"
 
 /* Buffer size to use in File IO */
 #define BUFFER_SIZE 8192
@@ -35,22 +35,33 @@ void setColor(string color);
 #define WGREEN		FOREGROUND_INTENSITY|FOREGROUND_GREEN
 #define WWHITE		FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE
 
-/* utility functions */
+/* Utility Functions */
 void logMessage(string msg, string color = WHITE);
 void die(int code, string msg = "");
 void printHelp();
+
+/* Low level file operations */
 bool isFile(string path);
 bool isDirectory(string path);
+bool isLink(string path);
 bool isNewer(string newFile, string oldFile);
 bool filesDiffer(string A, string B);
 
-/* File operations */
+/* Low level File operations */
 void copyFile(string src, string dst);
+void copyLink(string src, string dst);
 void createDirectory(string dir);
 void removeFile(string file);
-void removeDirectory(string dir);
 
-/* Native sync operations */
+/* Native low level file operations */
+bool copyFile_native(string src, string dst);
+bool copyLink_native(string src, string dst);
+bool createDirectory_native(string dir);
+bool removeFile_native(string file);
+bool removeDirectory_native(string dir);
+
+/* High-level file operations */
+void removeDirectory(string dir);
 void assertCanOpenDirectory(string dir);
 void copyAllFiles(string src, string dst);
 void copyNewAndUpdatedFiles(string src, string dst);
@@ -64,5 +75,30 @@ extern bool gUseColors;
 extern bool gFastMode;
 extern bool gVerbose;
 extern string gSyncMode;
+
+/* Try to figure out target OS */
+#if !defined(OS_WINDOWS) && !defined(OS_LINUX) && !defined(OS_OSX)
+#	if defined(__APPLE__)
+#		define OS_OSX
+#		define OS_LINUX
+#	elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined (__WIN32) || defined(_MSC_VER)
+#		define OS_WINDOWS
+#	else
+#		define OS_LINUX
+#	endif
+#endif
+
+/* Fixes for different platforms */
+#ifdef OS_WINDOWS
+
+/* windows has no lstat(), but it also has no symlinks */
+# define lstat stat
+
+/* this is so that isLink() always returns false on Windows systems */
+# ifdef S_IFLNK
+#  undef S_IFLNK
+# endif
+# define S_IFLNK 0
+#endif /* OS_WINDOWS */
 
 #endif /* _synctool_h */
