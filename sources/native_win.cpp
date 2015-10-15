@@ -100,6 +100,9 @@ readdir(DIR *dir)
 	/* we must read the next file and return it */
 	if (FindNextFileA(dir->h, &(dir->data)))
 	{
+		if (dir->ent->d_name != NULL)
+			free((void*)dir->ent->d_name);
+
 		dir->ent->d_name = _strdup(dir->data.cFileName);
 		return dir->ent;
 	}
