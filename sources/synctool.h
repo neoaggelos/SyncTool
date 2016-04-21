@@ -4,6 +4,7 @@
 /* Header files */
 #include <iostream>
 #include <fstream>
+#include <list>
 #include <string>
 #include <cstdio>
 #include <cstdlib>

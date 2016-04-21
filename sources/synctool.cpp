@@ -1,6 +1,19 @@
 #include "synctool.h"
 #include "mydirent.h"
 
+extern list<string> gBlacklist;
+
+bool should_exclude(string srcPath)
+{
+	bool ret = false;
+	for (list<string>::iterator i = gBlacklist.begin(); i != gBlacklist.end() && !ret; i++) {
+		ret = srcPath.find(*i) != string::npos;
+	}
+
+	return ret;
+
+}
+
 void removeDirectory(string dir)
 {
 	if (!isDirectory(dir))
@@ -51,6 +64,11 @@ void copyAllFiles(string src, string dst)
 		string srcPath = src + '/' + ent->d_name;
 		string dstPath = dst + '/' + ent->d_name;
 
+		if (should_exclude(srcPath)) {
+			logMessage("EX " + srcPath);
+			continue;
+		}
+
 		if (isDirectory(srcPath) && !isDirectory(dstPath))
 		{
 			if (isFile(dstPath) || isLink(dstPath))
@@ -83,6 +101,11 @@ void copyNewAndUpdatedFiles(string src, string dst)
 		string srcPath = src + '/' + ent->d_name;
 		string dstPath = dst + '/' + ent->d_name;
 
+		if (should_exclude(srcPath)) {
+			logMessage("EX " + srcPath);
+			continue;
+		}
+		
 		if (isDirectory(srcPath) && !isDirectory(dstPath))
 		{
 			if (isFile(dstPath) || isLink(dstPath))

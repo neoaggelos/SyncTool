@@ -5,12 +5,13 @@ bool gUseColors = true;
 bool gFastMode = false;
 bool gVerbose = false;
 string gSyncMode = "";
+list<string> gBlacklist;
 
 /* Handles command line arguments*/
 template <typename T>
-inline bool handle_arg(string arg, string name, T& var, T yes)
+inline bool handle_arg(string arg, string name, string shortname, T& var, T yes)
 {
-	if (arg == string(string("--") + name) || arg == string(string("-") + name) || arg == string(string("-") + name.substr(0,1)))
+	if (arg == string(string("--") + name) || arg == string(string("-") + name) || arg == string(string("-") + shortname))
 	{
 		var = yes; return true;
 	}
@@ -18,15 +19,28 @@ inline bool handle_arg(string arg, string name, T& var, T yes)
 }
 
 template <typename T>
-inline bool handle_arg(string arg, string name, T& var, T yes, T no)
+inline bool handle_arg(string arg, string name, string shortname, T& var, T yes, T no)
 {
-	if (arg == string(string("--") + name) || arg == string(string("-") + name) || arg == string(string("-") + name.substr(0,1)))
+	if (arg == string(string("--") + name) || arg == string(string("-") + name) || arg == string(string("-") + shortname))
 	{
 		var = yes; return true;
 	}
 	else if (arg == string(string("--no-") + name) || arg == string(string("-no-") + name))
 	{
 		var = no; return true;
+	}
+	return false;
+}
+
+inline bool handle_arg_with_option(int argc, char *argv[], int index, string name, string shortname, string &option)
+{
+	string arg = argv[index];
+	if (arg == string(string("--") + name) || arg == string(string("-") + name) || arg == string(string("-") + shortname))
+	{
+		if (index < argc - 1) {
+			option = argv[index + 1];
+			return true;
+		}
 	}
 	return false;
 }
@@ -57,7 +71,8 @@ void printHelp()
 		" -f : Use a faster (but less reliable) method of comparing files\n"
 		" -c : Colorize the program messages\n"
 		" -v : Write extra progress messages\n"
-		" -i : Run in interactive mode\n\n"
+		" -i : Run in interactive mode\n"
+		" -x <name> : Exclude files containing <name>\n\n"
 		"Sync modes:\n"
 		" -m : Mirror mode (default)\n"
 		" -a : Append mode\n"
@@ -74,14 +89,24 @@ int main(int argc, char** argv)
 	for (int i = 1; i < argc; i++)
 	{
 		bool isArg = false;
+		string argOption;
 
-		isArg |= handle_arg(argv[i], "color",       gUseColors,  true, false);
-		isArg |= handle_arg(argv[i], "fast",        gFastMode,   true, false);
-		isArg |= handle_arg(argv[i], "verbose",     gVerbose,    true, false);
-		isArg |= handle_arg(argv[i], "interactive", interactive, true, false);
+		isArg |= handle_arg_with_option(argc, argv, i, "exclude", "x", argOption);
+		if (isArg) {
+			gBlacklist.push_back(argOption);
 
-		isArg |= handle_arg<string>(argv[i], "append", gSyncMode, "append");
-		isArg |= handle_arg<string>(argv[i], "mirror", gSyncMode, "mirror");
+			cout << "Excluding files containing " << argOption << endl;
+			i++;
+			continue;
+		}
+
+		isArg |= handle_arg(argv[i], "color",       "c", gUseColors,  true, false);
+		isArg |= handle_arg(argv[i], "fast",        "f", gFastMode,   true, false);
+		isArg |= handle_arg(argv[i], "verbose",     "v", gVerbose,    true, false);
+		isArg |= handle_arg(argv[i], "interactive", "i", interactive, true, false);
+
+		isArg |= handle_arg<string>(argv[i], "append", "a", gSyncMode, "append");
+		isArg |= handle_arg<string>(argv[i], "mirror", "m", gSyncMode, "mirror");
 
 		if (!isArg && ((!isDirectory(argv[i])) || ((src != "") && (dst != ""))))
 			logMessage("Warning: Unknown option: " + string(argv[i]));
