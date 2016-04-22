@@ -95,7 +95,6 @@ int main(int argc, char** argv)
 		if (isArg) {
 			gBlacklist.push_back(argOption);
 
-			cout << "Excluding files containing " << argOption << endl;
 			i++;
 			continue;
 		}

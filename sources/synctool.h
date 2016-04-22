@@ -47,8 +47,9 @@ bool isDirectory(string path);
 bool isLink(string path);
 bool isNewer(string newFile, string oldFile);
 bool filesDiffer(string A, string B);
+bool shouldExclude(string srcPath);
 
-/* Low level File operations */
+/* Low level file operations */
 void copyFile(string src, string dst);
 void copyLink(string src, string dst);
 void createDirectory(string dir);
