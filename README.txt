@@ -57,6 +57,12 @@ Options:
                      text files.
          --no-fast : Disable previous option.
 
+ -x, --exclude <P> : Exclude files containing <P> from syncing. Note that <P>
+                     is not a wildcard, all files (or folders) containing <P>
+                     will be omitted. For example, the correct way to exclude
+                     all files from a sub-folder called 'somefolder' is by
+                     '-x somefolder' and not '-x somefolder/*'
+
  -v,     --verbose : Output extra debugging messages in the console.
       --no-verbose : Disable previous option.
 
@@ -80,3 +86,4 @@ The following are examples of using SyncTool.
 
 	# synctool.exe C:\\users\\user\\documents e:\\mybackup --append -v
 	# synctool.exe c:\\music d:\\music --fast --color --mirror
+	# synctool.exe /home/neo/files /media/backup/files --exclude temp
