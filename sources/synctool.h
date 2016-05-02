@@ -40,6 +40,8 @@ void setColor(string color);
 void logMessage(string msg, string color = WHITE);
 void die(int code, string msg = "");
 void printHelp();
+bool string_contains(string container, string str);
+bool string_endsin(string container, string str);
 
 /* Low level file operations */
 bool isFile(string path);
@@ -77,6 +79,8 @@ extern bool gUseColors;
 extern bool gFastMode;
 extern bool gVerbose;
 extern string gSyncMode;
+extern list<string> gBlacklist;
+extern list<string> gExcludedTypesList;
 
 /* Try to figure out target OS */
 #if !defined(OS_WINDOWS) && !defined(OS_LINUX) && !defined(OS_OSX)

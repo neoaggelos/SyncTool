@@ -6,6 +6,7 @@ bool gFastMode = false;
 bool gVerbose = false;
 string gSyncMode = "";
 list<string> gBlacklist;
+list<string> gExcludedTypesList;
 
 /* Handles command line arguments*/
 template <typename T>
@@ -45,40 +46,6 @@ inline bool handle_arg_with_option(int argc, char *argv[], int index, string nam
 	return false;
 }
 
-void logMessage(string msg, string color)
-{
-	setColor(color);
-	cout << msg << endl;
-}
-
-void die(int code, string msg)
-{
-	setColor(WHITE);
-	cout << endl << endl << msg << endl << endl
-		<< "Press enter to exit..." << endl;
-
-	(void)getchar();
-	exit(code);
-}
-
-void printHelp()
-{
-	logMessage(
-		"SyncTool version " VERSION "\n\n"
-		"Usage:\n"
-		"# synctool [source] [dest] <options>\n\n"
-		"Options:\n"
-		" -f : Use a faster (but less reliable) method of comparing files\n"
-		" -c : Colorize the program messages\n"
-		" -v : Write extra progress messages\n"
-		" -i : Run in interactive mode\n"
-		" -x <name> : Exclude files containing <name>\n\n"
-		"Sync modes:\n"
-		" -m : Mirror mode (default)\n"
-		" -a : Append mode\n"
-	);
-	die(EXIT_FAILURE);
-}
 
 int main(int argc, char** argv)
 {
@@ -94,6 +61,14 @@ int main(int argc, char** argv)
 		isArg |= handle_arg_with_option(argc, argv, i, "exclude", "x", argOption);
 		if (isArg) {
 			gBlacklist.push_back(argOption);
+
+			i++;
+			continue;
+		}
+
+		isArg |= handle_arg_with_option(argc, argv, i, "excludetype", "xx", argOption);
+		if (isArg) {
+			gExcludedTypesList.push_back(argOption);
 
 			i++;
 			continue;

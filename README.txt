@@ -62,6 +62,11 @@ Options:
                      will be omitted. For example, the correct way to exclude
                      all files from a sub-folder called 'somefolder' is by
                      '-x somefolder' and not '-x somefolder/*'
+                     
+ -xx,
+ --exclude-type <T>: Exclude files with extension <T>. For example, if you want
+                     want to exclude all '*.tmp' files from syncing, the correct
+                     argument is '-xx tmp'. (not to be confused with '-x tmp').
 
  -v,     --verbose : Output extra debugging messages in the console.
       --no-verbose : Disable previous option.

@@ -116,15 +116,3 @@ void copyLink(string src, string dst)
 	if (!copyLink_native(src, dst))
 		die(EXIT_FAILURE, "Error: Could not create symlink " + dst);
 }
-
-extern list<string> gBlacklist;
-
-bool shouldExclude(string srcPath)
-{
-	bool ret = false;
-	for (list<string>::iterator i = gBlacklist.begin(); i != gBlacklist.end() && !ret; i++) {
-		ret = srcPath.find(*i) != string::npos;
-	}
-
-	return ret;
-}

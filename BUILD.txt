@@ -55,6 +55,7 @@ If you are interested in browsing the source code, you might need to know what
 each source file does.
 
  main.cpp        -- Contains the main() function and utility routines
+ util.cpp        -- Contains helper utility functions
  synctool.cpp    -- Implements the 'high-level' sync tasks
  lowlevel.cpp    -- Implements the 'low-level' tasks and routines
  native_win.cpp  -- Native code for Windows systems

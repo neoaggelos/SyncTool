@@ -53,6 +53,14 @@ void copyAllFiles(string src, string dst)
 
 		if (shouldExclude(srcPath)) {
 			logMessage("EX " + srcPath);
+
+			if (isDirectory(dstPath)) {
+				removeDirectory(dstPath);
+			}
+			else if (isFile(dstPath) || isLink(dstPath)) {
+				removeFile(dstPath);
+			}
+
 			continue;
 		}
 
