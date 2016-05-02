@@ -33,13 +33,14 @@ inline bool handle_arg(string arg, string name, string shortname, T& var, T yes,
 	return false;
 }
 
-inline bool handle_arg_with_option(int argc, char *argv[], int index, string name, string shortname, string &option)
+inline bool handle_arg_with_option(int argc, char *argv[], int &index, string name, string shortname, string &option)
 {
 	string arg = argv[index];
 	if (arg == string(string("--") + name) || arg == string(string("-") + name) || arg == string(string("-") + shortname))
 	{
 		if (index < argc - 1) {
 			option = argv[index + 1];
+			index++;
 			return true;
 		}
 	}
@@ -62,7 +63,6 @@ int main(int argc, char** argv)
 		if (isArg) {
 			gBlacklist.push_back(argOption);
 
-			i++;
 			continue;
 		}
 
@@ -70,7 +70,6 @@ int main(int argc, char** argv)
 		if (isArg) {
 			gExcludedTypesList.push_back(argOption);
 
-			i++;
 			continue;
 		}
 
