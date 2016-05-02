@@ -13,10 +13,10 @@ all: synctool
 .phony: install clean windows
 
 synctool: $(SOURCES)
-	$(CXX) $(CXXFLAGS) $(LIBS) $(SOURCES) -o $(TARGET)
+	$(CXX) $(CXXFLAGS) $(SOURCES) $(LIBS) -o $(TARGET)
 
 windows: $(SOURCES)
-	$(CXX) $(CXXFLAGS) $(LIBS) $(SOURCES) -o $(TARGET).exe
+	$(CXX) $(CXXFLAGS) $(SOURCES) $(LIBS) -o $(TARGET).exe
 
 install: synctool
 	install -c synctool $(PREFIX)/bin/synctool
