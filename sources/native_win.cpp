@@ -17,6 +17,8 @@ void setColor(string color)
 			SetConsoleTextAttribute(h, WBLUE);
 		else if (color == GREEN)
 			SetConsoleTextAttribute(h, WGREEN);
+		else if (color == MAGENTA)
+			SetConsoleTextAttribute(h, WMAGENTA);
 		else if (color == WHITE)
 			SetConsoleTextAttribute(h, WWHITE);
 	}

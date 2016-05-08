@@ -52,7 +52,7 @@ void copyAllFiles(string src, string dst)
 		string dstPath = dst + '/' + ent->d_name;
 
 		if (shouldExclude(srcPath)) {
-			logMessage("EX " + srcPath);
+			logMessage("EX " + srcPath, MAGENTA);
 
 			if (isDirectory(dstPath)) {
 				removeDirectory(dstPath);
@@ -97,7 +97,7 @@ void copyNewAndUpdatedFiles(string src, string dst)
 		string dstPath = dst + '/' + ent->d_name;
 
 		if (shouldExclude(srcPath)) {
-			logMessage("EX " + srcPath);
+			logMessage("EX " + srcPath, MAGENTA);
 			continue;
 		}
 		
