@@ -39,7 +39,8 @@ void setColor(string color);
 #define WWHITE		FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE
 
 /* Utility Functions */
-void logMessage(string msg, string color = WHITE);
+void logMessage(string msg, string color = WHITE, bool if_verbose = false);
+void logMessageVerbose(string msg, string color = WHITE);
 void die(int code, string msg = "");
 void printHelp();
 bool string_contains(string container, string str);

@@ -1,9 +1,17 @@
 #include "synctool.h"
 
-void logMessage(string msg, string color)
+void logMessage(string msg, string color, bool if_verbose)
 {
+	if (if_verbose && !gVerbose)
+		return;
+
 	setColor(color);
 	cout << msg << endl;
+}
+
+void logMessageVerbose(string msg, string color)
+{
+	return logMessage(msg, color, true);
 }
 
 void die(int code, string msg)

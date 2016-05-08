@@ -24,7 +24,7 @@ void removeDirectory(string dir)
 
 	closedir(d);
 
-	logMessage("RM " + dir, RED);
+	logMessageVerbose("RM " + dir, RED);
 	if (!removeDirectory_native(dir.c_str()))
 		die(EXIT_FAILURE, "Error: Could not delete " + dir);
 }
@@ -52,7 +52,7 @@ void copyAllFiles(string src, string dst)
 		string dstPath = dst + '/' + ent->d_name;
 
 		if (shouldExclude(srcPath)) {
-			logMessage("EX " + srcPath, MAGENTA);
+			logMessageVerbose("EX " + srcPath, MAGENTA);
 
 			if (isDirectory(dstPath)) {
 				removeDirectory(dstPath);
@@ -97,7 +97,7 @@ void copyNewAndUpdatedFiles(string src, string dst)
 		string dstPath = dst + '/' + ent->d_name;
 
 		if (shouldExclude(srcPath)) {
-			logMessage("EX " + srcPath, MAGENTA);
+			logMessageVerbose("EX " + srcPath, MAGENTA);
 			continue;
 		}
 		

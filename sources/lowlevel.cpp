@@ -29,9 +29,6 @@ bool isNewer(string newFile, string oldFile)
 
 bool filesDiffer(string A, string B)
 {
-	if (gVerbose)
-		logMessage("Comparing " + A + " with " + B);
-
 	if (!isFile(A) || !isFile(B))
 		return true;
 
@@ -81,7 +78,7 @@ void createDirectory(string dir)
 	if (isDirectory(dir))
 		return;
 
-	logMessage("MK " + dir, GREEN);
+	logMessageVerbose("MK " + dir, GREEN);
 	if (!createDirectory_native(dir.c_str()))
 		die(EXIT_FAILURE, "Error: Could not create directory " + dir);
 }
@@ -91,7 +88,7 @@ void removeFile(string file)
 	if (!isFile(file) && !isLink(file))
 		return;
 
-	logMessage("RM " + file, RED);
+	logMessageVerbose("RM " + file, RED);
 	if (!removeFile_native(file.c_str()))
 		die(EXIT_FAILURE, "Error: Could not delete " + file);
 }
@@ -104,14 +101,14 @@ void copyFile(string src, string dst)
 	if (isFile(dst) || isLink(dst))
 		removeFile(dst);
 
-	logMessage("CP " + src + " -> " + dst, BLUE);
+	logMessageVerbose("CP " + src + " -> " + dst, BLUE);
 	if (!copyFile_native(src, dst))
 		die(EXIT_FAILURE, "Error: Could not copy " + src);
 }
 
 void copyLink(string src, string dst)
 {
-	logMessage("LN " + src + " -> " + dst, BLUE);
+	logMessageVerbose("LN " + src + " -> " + dst, BLUE);
 
 	if (!copyLink_native(src, dst))
 		die(EXIT_FAILURE, "Error: Could not create symlink " + dst);
