@@ -1,4 +1,4 @@
-SyncTool version 0.3
+SyncTool version 0.4
 Developed by Aggelos Kolaitis <neoaggelos@gmail.com>
 
 ================================================================================

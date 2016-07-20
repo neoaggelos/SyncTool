@@ -15,7 +15,7 @@
 using namespace std;
 
 /* Synctool version */
-#define VERSION "0.3"
+#define VERSION "0.4"
 
 /* Buffer size to use in File IO */
 #define BUFFER_SIZE 8192
