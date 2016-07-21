@@ -61,9 +61,6 @@ bool shouldExclude(string srcPath)
 	return ret;
 }
 
-
-
-
 bool
 string_contains(string container, string str)
 {

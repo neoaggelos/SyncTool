@@ -17,7 +17,7 @@ Build using Make (Linux and Mac OS X)
 
 Linux and Mac OS X users can just use make. Open a terminal and run:
 
-	# cd path/to/synctool/source/code
+	# cd (PATH TO SYNCTOOL)
 	# make
 	# sudo make install
 
@@ -30,15 +30,6 @@ For MinGW under Windows, you can use:
 	# make CXX=/path/to/mingw/g++ windows
 
 ================================================================================
-Build with any IDE (Windows, Linux and Mac OS X)
-================================================================================
-
-Open your favourite IDE (e.g. Dev-Cpp, Code::Blocks, Visual Studio etc) and
-create a new empty C++ project (name it 'SyncTool').
-
-Add all files from the 'sources' directory in the project, and build.
-
-================================================================================
 Generate project files with premake (Windows, Linux and Mac OS X)
 ================================================================================
 
@@ -48,20 +39,23 @@ and Xcode. Use these project files to build SyncTool.
 [2]: http://premake.github.io	"premake5 home page"
 
 ================================================================================
+Build with any IDE (Windows, Linux and Mac OS X)
+================================================================================
+
+Open your favourite IDE (e.g. Dev-Cpp, Code::Blocks, Visual Studio etc) and
+create a new empty C++ project (name it 'SyncTool').
+
+Add all files from the 'sources' directory (sources/windows/ if you are using
+Windows, sources/linux/ for UNIX or Mac OS X) in the project, and build.
+
+================================================================================
 For developers
 ================================================================================
 
-If you are interested in browsing the source code, you might need to know what
-each source file does.
+Versions >= 0.4 contain UNICODE support for Windows systems. This effectively
+means that there are now two separate code bases for UNIX and Windows systems.
+Please make sure that the code bases are kept up-to-date with each other (e.g.
+bug fixes).
 
- main.cpp        -- Contains the main() function and utility routines
- util.cpp        -- Contains helper utility functions
- synctool.cpp    -- Implements the 'high-level' sync tasks
- lowlevel.cpp    -- Implements the 'low-level' tasks and routines
- native_win.cpp  -- Native code for Windows systems
- native_lnx.cpp  -- Native code for Linux and Mac OS X systems
-
- synctool.h      -- Main header file
- mydirent.h      -- Includes system <dirent.h> or defines our own if needed
 
 -- Aggelos Kolaitis

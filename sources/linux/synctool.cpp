@@ -1,5 +1,5 @@
 #include "synctool.h"
-#include "mydirent.h"
+#include <dirent.h>
 
 void removeDirectory(string dir)
 {

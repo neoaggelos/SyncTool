@@ -1,7 +1,5 @@
 #include "synctool.h"
 
-#if !defined(OS_WINDOWS)
-
 #include <unistd.h>
 
 bool
@@ -84,4 +82,3 @@ void setColor(string color)
 		cout << color;
 }
 
-#endif

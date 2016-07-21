@@ -32,11 +32,6 @@ void setColor(string color);
 #define BLUE		"\033[22;34m"
 #define MAGENTA		"\033[22;35m"
 #define WHITE 		"\033[01;37m"
-#define WRED		FOREGROUND_INTENSITY|FOREGROUND_RED
-#define WBLUE		FOREGROUND_INTENSITY|FOREGROUND_BLUE
-#define WGREEN		FOREGROUND_INTENSITY|FOREGROUND_GREEN
-#define WMAGENTA	FOREGROUND_INTENSITY|FOREGROUND_RED|FOREGROUND_BLUE
-#define WWHITE		FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE
 
 /* Utility Functions */
 void logMessage(string msg, string color = WHITE, bool if_verbose = false);
@@ -84,30 +79,5 @@ extern bool gVerbose;
 extern string gSyncMode;
 extern list<string> gBlacklist;
 extern list<string> gExcludedTypesList;
-
-/* Try to figure out target OS */
-#if !defined(OS_WINDOWS) && !defined(OS_LINUX) && !defined(OS_OSX)
-#	if defined(__APPLE__)
-#		define OS_OSX
-#		define OS_LINUX
-#	elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined (__WIN32) || defined(_MSC_VER)
-#		define OS_WINDOWS
-#	else
-#		define OS_LINUX
-#	endif
-#endif
-
-/* Fixes for different platforms */
-#ifdef OS_WINDOWS
-
-/* windows has no lstat(), but it also has no symlinks */
-# define lstat stat
-
-/* this is so that isLink() always returns false on Windows systems */
-# ifdef S_IFLNK
-#  undef S_IFLNK
-# endif
-# define S_IFLNK 0
-#endif /* OS_WINDOWS */
 
 #endif /* _synctool_h */
