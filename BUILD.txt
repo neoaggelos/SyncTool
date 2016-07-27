@@ -30,23 +30,14 @@ For MinGW under Windows, you can use:
 	# make CXX=/path/to/mingw/g++ windows
 
 ================================================================================
-Generate project files with premake (Windows, Linux and Mac OS X)
+Generate project files with premake or CMake (Windows)
 ================================================================================
 
-You can use premake[2] to generate project files for Visual Studio, GNU make
-and Xcode. Use these project files to build SyncTool.
+You can use premake[2] or CMake[3] to generate project files for your favourite
+IDE, which you can then use to build Synctool.
 
-[2]: http://premake.github.io	"premake5 home page"
-
-================================================================================
-Build with any IDE (Windows, Linux and Mac OS X)
-================================================================================
-
-Open your favourite IDE (e.g. Dev-Cpp, Code::Blocks, Visual Studio etc) and
-create a new empty C++ project (name it 'SyncTool').
-
-Add all files from the 'sources' directory (sources/windows/ if you are using
-Windows, sources/linux/ for UNIX or Mac OS X) in the project, and build.
+[2]: http://premake.github.io   "premake5 home page"
+[3]: http://cmake.org           "CMake home page"
 
 ================================================================================
 For developers
