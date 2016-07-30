@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_LEGACY_CYGWIN_WIN32 0)
 
 # Define the project
-project(Synctool C++)
+project(Synctool)
 
 # Debug builds
 if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
@@ -13,13 +13,10 @@ endif(${CMAKE_BUILD_TYPE} MATCHES "Debug")
 
 # Sources
 if (WIN32)
-  file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/windows/*)
+    file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/sources/windows/*)
 else()
-  file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/linux/*)
+  file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/sources/linux/*)
 endif()
 
 # Executable
 add_executable(synctool ${SOURCES})
-
-# Installation targets
-install(PROGRAMS synctool ${CMAKE_INSTALL_PREFIX}/bin)
